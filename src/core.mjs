@@ -9,14 +9,11 @@ export function parseYaml(text) {
 
 export function parseMarkdownFrontmatter(text) {
   const normalized = text.replace(/\r\n?/g, "\n");
-  if (!normalized.startsWith("---\n")) {
+  const bounds = findFrontmatterBounds(normalized);
+  if (!bounds) {
     return {};
   }
-  const end = normalized.indexOf("\n---", 4);
-  if (end === -1) {
-    return {};
-  }
-  return parseYaml(normalized.slice(4, end));
+  return parseYaml(normalized.slice(bounds.contentStart, bounds.contentEnd));
 }
 
 export function evaluateFilter(filter, row, warnings = []) {
@@ -53,6 +50,7 @@ export function buildTableModel(baseConfig, files) {
   const columns = (view.order ?? ["file.name"]).map((property) => ({
     property,
     label: propertyLabel(baseConfig, property),
+    editable: isEditableProperty(property),
   }));
 
   const rows = files
@@ -63,6 +61,25 @@ export function buildTableModel(baseConfig, files) {
     }));
 
   return { columns, rows, warnings: unique(warnings) };
+}
+
+export function updateMarkdownFrontmatterValue(markdown, property, textValue) {
+  if (!isEditableProperty(property)) {
+    throw new Error(`Cannot edit read-only property: ${property}`);
+  }
+
+  const normalized = markdown.replace(/\r\n?/g, "\n");
+  const key = frontmatterKey(property);
+  const frontmatter = parseMarkdownFrontmatter(normalized);
+  frontmatter[key] = parseEditedValue(textValue, frontmatter[key]);
+
+  const yaml = serializeFlatYaml(frontmatter);
+  const nextFrontmatter = `---\n${yaml}${yaml ? "\n" : ""}---\n`;
+  const bounds = findFrontmatterBounds(normalized);
+  if (!bounds) {
+    return `${nextFrontmatter}${normalized}`;
+  }
+  return `${normalized.slice(0, bounds.blockStart)}${nextFrontmatter}${normalized.slice(bounds.blockEnd)}`;
 }
 
 export function makeRowFromFile(meta, markdown) {
@@ -177,6 +194,9 @@ function parseScalar(text) {
   if (text === "" || text === "~" || text === "null") {
     return null;
   }
+  if (text === "[]") {
+    return [];
+  }
   if (text === "true") {
     return true;
   }
@@ -188,6 +208,80 @@ function parseScalar(text) {
   }
   if (/^-?\d+(\.\d+)?$/.test(text)) {
     return Number(text);
+  }
+  return text;
+}
+
+function findFrontmatterBounds(text) {
+  if (!text.startsWith("---\n")) {
+    return null;
+  }
+  const contentStart = 4;
+  const closingStart = text.indexOf("\n---", contentStart);
+  if (closingStart === -1) {
+    return null;
+  }
+  const closingLineEnd = text.indexOf("\n", closingStart + 1);
+  return {
+    blockStart: 0,
+    contentStart,
+    contentEnd: closingStart,
+    blockEnd: closingLineEnd === -1 ? text.length : closingLineEnd + 1,
+  };
+}
+
+function isEditableProperty(property) {
+  return !property.startsWith("file.");
+}
+
+function frontmatterKey(property) {
+  return property.startsWith("note.") ? property.slice(5) : property;
+}
+
+function parseEditedValue(textValue, previousValue) {
+  const text = String(textValue ?? "").trim();
+  if (Array.isArray(previousValue)) {
+    return text === "" ? [] : text.split(",").map((item) => item.trim()).filter(Boolean);
+  }
+  if (typeof previousValue === "number" && /^-?\d+(\.\d+)?$/.test(text)) {
+    return Number(text);
+  }
+  if (typeof previousValue === "boolean") {
+    return text === "true";
+  }
+  return String(textValue ?? "");
+}
+
+function serializeFlatYaml(value) {
+  return Object.entries(value)
+    .map(([key, item]) => serializeYamlEntry(key, item))
+    .join("\n");
+}
+
+function serializeYamlEntry(key, value) {
+  if (Array.isArray(value)) {
+    if (value.length === 0) {
+      return `${key}: []`;
+    }
+    return `${key}:\n${value.map((item) => `  - ${serializeScalar(item)}`).join("\n")}`;
+  }
+  return `${key}: ${serializeScalar(value)}`;
+}
+
+function serializeScalar(value) {
+  if (value == null) {
+    return "null";
+  }
+  if (typeof value === "number" || typeof value === "boolean") {
+    return String(value);
+  }
+
+  const text = String(value);
+  if (text === "") {
+    return '""';
+  }
+  if (/[:#\[\]{},&*!|>'"%@`]/.test(text) || /^\s|\s$|^(true|false|null|~|-?\d+(\.\d+)?)$/i.test(text)) {
+    return JSON.stringify(text);
   }
   return text;
 }

@@ -1,4 +1,4 @@
-function x(e){let n=atob(e),r=n.length,t=new Uint8Array(r);for(let i=0;i<r;i++)t[i]=n.charCodeAt(i);return t}function u(e){typeof e=="string"&&(e=new TextEncoder().encode(e));let n="",r=e.byteLength;for(let t=0;t<r;t++)n+=String.fromCharCode(e[t]);return btoa(n)}var T=new Uint8Array(16),y=class{constructor(e="",n=1e3){this.prefix=e,this.maxCaptureSize=n,this.prefix=e,this.originalConsole={log:console.log.bind(console),info:console.info.bind(console),warn:console.warn.bind(console),error:console.error.bind(console),debug:console.debug.bind(console)},this.patchConsole()}originalConsole;logBuffer=[];patchConsole(){let e=n=>(...r)=>{let t=this.prefix?[this.prefix,...r]:r;this.originalConsole[n](...t),this.captureLog(n,r)};console.log=e("log"),console.info=e("info"),console.warn=e("warn"),console.error=e("error"),console.debug=e("debug")}captureLog(e,n){let r={level:e,timestamp:Date.now(),message:n.map(t=>{if(typeof t=="string")return t;try{return JSON.stringify(t)}catch{return String(t)}}).join(" ")};this.logBuffer.push(r),this.logBuffer.length>this.maxCaptureSize&&this.logBuffer.shift()}async postToServer(e,n){if(this.logBuffer.length>0){let t=[...this.logBuffer];this.logBuffer=[];try{if(!(await fetch(e,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(t.map(s=>({...s,source:n})))})).ok)throw new Error("Failed to post logs to server")}catch(i){console.warn("Could not post logs to server",i.message),this.logBuffer.unshift(...t)}}}},p;function b(e=""){return p=new y(e),p}var a=e=>{throw new Error("Not initialized yet")},d=typeof window>"u"&&typeof globalThis.WebSocketPair>"u",c=new Map,l=0;d&&(globalThis.syscall=async(e,...n)=>await new Promise((r,t)=>{l++,c.set(l,{resolve:r,reject:t}),a({type:"sys",id:l,name:e,args:n})}));function f(e,n,r){d&&(a=r,self.addEventListener("message",t=>{(async()=>{let i=t.data;switch(i.type){case"inv":{let s=e[i.name];if(!s)throw new Error(`Function not loaded: ${i.name}`);try{let o=await Promise.resolve(s(...i.args||[]));a({type:"invr",id:i.id,result:o})}catch(o){console.error("An exception was thrown as a result of invoking function",i.name,"error:",o.message),a({type:"invr",id:i.id,error:o.message})}}break;case"sysr":{let s=i.id,o=c.get(s);if(!o)throw Error("Invalid request id");c.delete(s),i.error?o.reject(new Error(i.error)):o.resolve(i.result)}break}})().catch(console.error)}),a({type:"manifest",manifest:n}),b(`[${n.name} plug]`))}async function v(e,n){if(typeof e!="string"){let r=new Uint8Array(await e.arrayBuffer()),t=r.length>0?u(r):void 0;n={method:e.method,headers:Object.fromEntries(e.headers.entries()),base64Body:t},e=e.url}return syscall("sandboxFetch.fetch",e,n)}globalThis.nativeFetch=globalThis.fetch;function k(){globalThis.fetch=async(e,n)=>{let r=n?.body?u(new Uint8Array(await new Response(n.body).arrayBuffer())):void 0,t=await v(e,n&&{method:n.method,headers:n.headers,base64Body:r});return new Response(t.base64Body?x(t.base64Body):null,{status:t.status,headers:t.headers})}}d&&k();var m=`function parseYaml(text) {
+function x(n){let e=atob(n),r=e.length,t=new Uint8Array(r);for(let i=0;i<r;i++)t[i]=e.charCodeAt(i);return t}function p(n){typeof n=="string"&&(n=new TextEncoder().encode(n));let e="",r=n.byteLength;for(let t=0;t<r;t++)e+=String.fromCharCode(n[t]);return btoa(e)}var S=new Uint8Array(16),y=class{constructor(n="",e=1e3){this.prefix=n,this.maxCaptureSize=e,this.prefix=n,this.originalConsole={log:console.log.bind(console),info:console.info.bind(console),warn:console.warn.bind(console),error:console.error.bind(console),debug:console.debug.bind(console)},this.patchConsole()}originalConsole;logBuffer=[];patchConsole(){let n=e=>(...r)=>{let t=this.prefix?[this.prefix,...r]:r;this.originalConsole[e](...t),this.captureLog(e,r)};console.log=n("log"),console.info=n("info"),console.warn=n("warn"),console.error=n("error"),console.debug=n("debug")}captureLog(n,e){let r={level:n,timestamp:Date.now(),message:e.map(t=>{if(typeof t=="string")return t;try{return JSON.stringify(t)}catch{return String(t)}}).join(" ")};this.logBuffer.push(r),this.logBuffer.length>this.maxCaptureSize&&this.logBuffer.shift()}async postToServer(n,e){if(this.logBuffer.length>0){let t=[...this.logBuffer];this.logBuffer=[];try{if(!(await fetch(n,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(t.map(a=>({...a,source:e})))})).ok)throw new Error("Failed to post logs to server")}catch(i){console.warn("Could not post logs to server",i.message),this.logBuffer.unshift(...t)}}}},u;function b(n=""){return u=new y(n),u}var l=n=>{throw new Error("Not initialized yet")},d=typeof window>"u"&&typeof globalThis.WebSocketPair>"u",c=new Map,s=0;d&&(globalThis.syscall=async(n,...e)=>await new Promise((r,t)=>{s++,c.set(s,{resolve:r,reject:t}),l({type:"sys",id:s,name:n,args:e})}));function f(n,e,r){d&&(l=r,self.addEventListener("message",t=>{(async()=>{let i=t.data;switch(i.type){case"inv":{let a=n[i.name];if(!a)throw new Error(`Function not loaded: ${i.name}`);try{let o=await Promise.resolve(a(...i.args||[]));l({type:"invr",id:i.id,result:o})}catch(o){console.error("An exception was thrown as a result of invoking function",i.name,"error:",o.message),l({type:"invr",id:i.id,error:o.message})}}break;case"sysr":{let a=i.id,o=c.get(a);if(!o)throw Error("Invalid request id");c.delete(a),i.error?o.reject(new Error(i.error)):o.resolve(i.result)}break}})().catch(console.error)}),l({type:"manifest",manifest:e}),b(`[${e.name} plug]`))}async function v(n,e){if(typeof n!="string"){let r=new Uint8Array(await n.arrayBuffer()),t=r.length>0?p(r):void 0;e={method:n.method,headers:Object.fromEntries(n.headers.entries()),base64Body:t},n=n.url}return syscall("sandboxFetch.fetch",n,e)}globalThis.nativeFetch=globalThis.fetch;function k(){globalThis.fetch=async(n,e)=>{let r=e?.body?p(new Uint8Array(await new Response(e.body).arrayBuffer())):void 0,t=await v(n,e&&{method:e.method,headers:e.headers,base64Body:r});return new Response(t.base64Body?x(t.base64Body):null,{status:t.status,headers:t.headers})}}d&&k();var m=`function parseYaml(text) {
   const lines = text.replace(/\\r\\n?/g, "\\n").split("\\n")
     .map((raw) => ({ raw, indent: raw.match(/^ */)[0].length, text: raw.trim() }))
     .filter((line) => line.text !== "" && !line.text.startsWith("#"));
@@ -9,14 +9,11 @@ function x(e){let n=atob(e),r=n.length,t=new Uint8Array(r);for(let i=0;i<r;i++)t
 
 function parseMarkdownFrontmatter(text) {
   const normalized = text.replace(/\\r\\n?/g, "\\n");
-  if (!normalized.startsWith("---\\n")) {
+  const bounds = findFrontmatterBounds(normalized);
+  if (!bounds) {
     return {};
   }
-  const end = normalized.indexOf("\\n---", 4);
-  if (end === -1) {
-    return {};
-  }
-  return parseYaml(normalized.slice(4, end));
+  return parseYaml(normalized.slice(bounds.contentStart, bounds.contentEnd));
 }
 
 function evaluateFilter(filter, row, warnings = []) {
@@ -53,6 +50,7 @@ function buildTableModel(baseConfig, files) {
   const columns = (view.order ?? ["file.name"]).map((property) => ({
     property,
     label: propertyLabel(baseConfig, property),
+    editable: isEditableProperty(property),
   }));
 
   const rows = files
@@ -63,6 +61,25 @@ function buildTableModel(baseConfig, files) {
     }));
 
   return { columns, rows, warnings: unique(warnings) };
+}
+
+function updateMarkdownFrontmatterValue(markdown, property, textValue) {
+  if (!isEditableProperty(property)) {
+    throw new Error(\`Cannot edit read-only property: \${property}\`);
+  }
+
+  const normalized = markdown.replace(/\\r\\n?/g, "\\n");
+  const key = frontmatterKey(property);
+  const frontmatter = parseMarkdownFrontmatter(normalized);
+  frontmatter[key] = parseEditedValue(textValue, frontmatter[key]);
+
+  const yaml = serializeFlatYaml(frontmatter);
+  const nextFrontmatter = \`---\\n\${yaml}\${yaml ? "\\n" : ""}---\\n\`;
+  const bounds = findFrontmatterBounds(normalized);
+  if (!bounds) {
+    return \`\${nextFrontmatter}\${normalized}\`;
+  }
+  return \`\${normalized.slice(0, bounds.blockStart)}\${nextFrontmatter}\${normalized.slice(bounds.blockEnd)}\`;
 }
 
 function makeRowFromFile(meta, markdown) {
@@ -177,6 +194,9 @@ function parseScalar(text) {
   if (text === "" || text === "~" || text === "null") {
     return null;
   }
+  if (text === "[]") {
+    return [];
+  }
   if (text === "true") {
     return true;
   }
@@ -188,6 +208,80 @@ function parseScalar(text) {
   }
   if (/^-?\\d+(\\.\\d+)?$/.test(text)) {
     return Number(text);
+  }
+  return text;
+}
+
+function findFrontmatterBounds(text) {
+  if (!text.startsWith("---\\n")) {
+    return null;
+  }
+  const contentStart = 4;
+  const closingStart = text.indexOf("\\n---", contentStart);
+  if (closingStart === -1) {
+    return null;
+  }
+  const closingLineEnd = text.indexOf("\\n", closingStart + 1);
+  return {
+    blockStart: 0,
+    contentStart,
+    contentEnd: closingStart,
+    blockEnd: closingLineEnd === -1 ? text.length : closingLineEnd + 1,
+  };
+}
+
+function isEditableProperty(property) {
+  return !property.startsWith("file.");
+}
+
+function frontmatterKey(property) {
+  return property.startsWith("note.") ? property.slice(5) : property;
+}
+
+function parseEditedValue(textValue, previousValue) {
+  const text = String(textValue ?? "").trim();
+  if (Array.isArray(previousValue)) {
+    return text === "" ? [] : text.split(",").map((item) => item.trim()).filter(Boolean);
+  }
+  if (typeof previousValue === "number" && /^-?\\d+(\\.\\d+)?$/.test(text)) {
+    return Number(text);
+  }
+  if (typeof previousValue === "boolean") {
+    return text === "true";
+  }
+  return String(textValue ?? "");
+}
+
+function serializeFlatYaml(value) {
+  return Object.entries(value)
+    .map(([key, item]) => serializeYamlEntry(key, item))
+    .join("\\n");
+}
+
+function serializeYamlEntry(key, value) {
+  if (Array.isArray(value)) {
+    if (value.length === 0) {
+      return \`\${key}: []\`;
+    }
+    return \`\${key}:\\n\${value.map((item) => \`  - \${serializeScalar(item)}\`).join("\\n")}\`;
+  }
+  return \`\${key}: \${serializeScalar(value)}\`;
+}
+
+function serializeScalar(value) {
+  if (value == null) {
+    return "null";
+  }
+  if (typeof value === "number" || typeof value === "boolean") {
+    return String(value);
+  }
+
+  const text = String(value);
+  if (text === "") {
+    return '""';
+  }
+  if (/[:#\\[\\]{},&*!|>'"%@\`]/.test(text) || /^\\s|\\s$|^(true|false|null|~|-?\\d+(\\.\\d+)?)$/i.test(text)) {
+    return JSON.stringify(text);
   }
   return text;
 }
@@ -268,6 +362,9 @@ function unique(values) {
 
 
 const decoder = new TextDecoder();
+const encoder = new TextEncoder();
+let currentBaseConfig = null;
+let currentBaseName = "Base";
 
 function escapeHtml(value) {
   return String(value).replace(/[&<>"']/g, (char) => ({
@@ -294,6 +391,10 @@ async function readFileText(name) {
   return decoder.decode(data);
 }
 
+async function writeFileText(name, text) {
+  await syscall("space.writeFile", name, encoder.encode(text));
+}
+
 async function loadMarkdownRows() {
   const files = await syscall("space.listFiles");
   const markdownFiles = files.filter((file) => {
@@ -318,15 +419,81 @@ function renderModel(model, baseName) {
     ? '<div class="warnings">' + model.warnings.map(escapeHtml).join("<br>") + "</div>"
     : "";
   const headerHtml = model.columns.map((column) => '<th>' + escapeHtml(column.label) + '</th>').join("");
-  const rowHtml = model.rows.map((row) => (
-    '<tr>' + row.cells.map((cell) => '<td>' + escapeHtml(cell) + '</td>').join("") + '</tr>'
+  const rowHtml = model.rows.map((row, rowIndex) => (
+    '<tr>' + row.cells.map((cell, columnIndex) => {
+      const column = model.columns[columnIndex];
+      if (!column.editable) {
+        return '<td>' + escapeHtml(cell) + '</td>';
+      }
+      return '<td contenteditable="true" spellcheck="false" data-row-index="' + rowIndex +
+        '" data-column-index="' + columnIndex + '">' + escapeHtml(cell) + '</td>';
+    }).join("") + '</tr>'
   )).join("");
 
   document.body.innerHTML = '<main>' +
-    '<header><h1>' + escapeHtml(baseName) + '</h1><span>' + model.rows.length + ' rows</span></header>' +
+    '<header><h1>' + escapeHtml(baseName) + '</h1><span id="status">' + model.rows.length + ' rows</span></header>' +
     warningHtml +
     '<div class="table-wrap"><table><thead><tr>' + headerHtml + '</tr></thead><tbody>' + rowHtml + '</tbody></table></div>' +
     '</main>';
+  document.querySelector("tbody")?.addEventListener("focusin", rememberCellValue);
+  document.querySelector("tbody")?.addEventListener("focusout", saveEditedCell);
+  document.querySelector("tbody")?.addEventListener("keydown", handleCellKeydown);
+  window.currentModel = model;
+}
+
+function rememberCellValue(event) {
+  const cell = event.target.closest?.("td[contenteditable]");
+  if (cell) {
+    cell.dataset.originalValue = cell.textContent;
+  }
+}
+
+function handleCellKeydown(event) {
+  const cell = event.target.closest?.("td[contenteditable]");
+  if (!cell) {
+    return;
+  }
+  if (event.key === "Enter") {
+    event.preventDefault();
+    cell.blur();
+  } else if (event.key === "Escape") {
+    event.preventDefault();
+    cell.textContent = cell.dataset.originalValue ?? "";
+    cell.blur();
+  }
+}
+
+async function saveEditedCell(event) {
+  const cell = event.target.closest?.("td[contenteditable]");
+  if (!cell || cell.textContent === (cell.dataset.originalValue ?? "")) {
+    return;
+  }
+
+  const row = window.currentModel?.rows[Number(cell.dataset.rowIndex)];
+  const column = window.currentModel?.columns[Number(cell.dataset.columnIndex)];
+  if (!row || !column) {
+    return;
+  }
+
+  const path = row.file.file.path;
+  try {
+    setStatus("Saving...");
+    const markdown = await readFileText(path);
+    await writeFileText(path, updateMarkdownFrontmatterValue(markdown, column.property, cell.textContent));
+    const rows = await loadMarkdownRows();
+    renderModel(buildTableModel(currentBaseConfig, rows), currentBaseName);
+  } catch (error) {
+    cell.textContent = cell.dataset.originalValue ?? "";
+    setStatus("Save failed");
+    console.error(error);
+  }
+}
+
+function setStatus(text) {
+  const status = document.getElementById("status");
+  if (status) {
+    status.textContent = text;
+  }
 }
 
 async function openBase(event) {
@@ -336,8 +503,10 @@ async function openBase(event) {
     const data = detail.data;
     const yamlText = typeof data === "string" ? data : decoder.decode(data);
     const baseConfig = parseYaml(yamlText);
+    currentBaseConfig = baseConfig;
+    currentBaseName = meta.name ?? "Base";
     const rows = await loadMarkdownRows();
-    renderModel(buildTableModel(baseConfig, rows), meta.name ?? "Base");
+    renderModel(buildTableModel(baseConfig, rows), currentBaseName);
   } catch (error) {
     document.body.innerHTML = '<main><div class="error">' + escapeHtml(error.message ?? error) + '</div></main>';
     console.error(error);
@@ -413,6 +582,14 @@ window.silverbullet?.addEventLister?.("file-open", openBase);
     tr:last-child td {
       border-bottom: 0;
     }
+    td[contenteditable="true"] {
+      cursor: text;
+      outline: 0;
+    }
+    td[contenteditable="true"]:focus {
+      background: light-dark(#eef6ff, #102a43);
+      box-shadow: inset 0 0 0 2px light-dark(#2563eb, #7dd3fc);
+    }
     .warnings,
     .error {
       border-radius: 6px;
@@ -433,5 +610,5 @@ window.silverbullet?.addEventLister?.("file-open", openBase);
   <main>Loading base...</main>
   <script>${m}<\/script>
 </body>
-</html>`}}var g={editor:h},w={name:"obsidian-bases",functions:{editor:{path:"./src/editor.js:editor",editor:["base"]}},assets:{}},W={manifest:w,functionMapping:g};f(g,w,self.postMessage);export{W as plug};
+</html>`}}var g={editor:h},w={name:"obsidian-bases",functions:{editor:{path:"./src/editor.js:editor",editor:["base"]}},assets:{}},z={manifest:w,functionMapping:g};f(g,w,self.postMessage);export{z as plug};
 //# sourceMappingURL=obsidian-bases.plug.js.map

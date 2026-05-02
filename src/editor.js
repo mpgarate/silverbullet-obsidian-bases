@@ -69,6 +69,14 @@ export async function editor() {
     tr:last-child td {
       border-bottom: 0;
     }
+    td[contenteditable="true"] {
+      cursor: text;
+      outline: 0;
+    }
+    td[contenteditable="true"]:focus {
+      background: light-dark(#eef6ff, #102a43);
+      box-shadow: inset 0 0 0 2px light-dark(#2563eb, #7dd3fc);
+    }
     .warnings,
     .error {
       border-radius: 6px;

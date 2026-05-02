@@ -5,6 +5,7 @@ import {
   makeRowFromFile,
   parseMarkdownFrontmatter,
   parseYaml,
+  updateMarkdownFrontmatterValue,
 } from "../src/core.mjs";
 
 const musicBase = `views:
@@ -131,4 +132,38 @@ test("unsupported filters fail closed with a warning", () => {
 
   assert.equal(model.rows.length, 0);
   assert.match(model.warnings[0], /Unsupported filter expression/);
+});
+
+test("updates scalar frontmatter values for editable table cells", () => {
+  const updated = updateMarkdownFrontmatterValue(
+    musicNotes["Music/Artists/nina-simone.md"],
+    "favorite track",
+    "Sinnerman",
+  );
+
+  const frontmatter = parseMarkdownFrontmatter(updated);
+  assert.equal(frontmatter["favorite track"], "Sinnerman");
+  assert.equal(frontmatter.artist, "Nina Simone");
+  assert.match(updated, /Generated musician fixture/);
+});
+
+test("updates list frontmatter values from comma-separated edited text", () => {
+  const updated = updateMarkdownFrontmatterValue(
+    musicNotes["Music/Artists/fela-kuti.md"],
+    "instruments",
+    "saxophone, trumpet, keyboards",
+  );
+
+  assert.deepEqual(parseMarkdownFrontmatter(updated).instruments, [
+    "saxophone",
+    "trumpet",
+    "keyboards",
+  ]);
+});
+
+test("rejects edits to file properties", () => {
+  assert.throws(
+    () => updateMarkdownFrontmatterValue(musicNotes["Music/Artists/bjork.md"], "file.name", "new-name"),
+    /read-only property/,
+  );
 });
