@@ -7,8 +7,12 @@ const viewerSource = `${browserCore}
 
 const decoder = new TextDecoder();
 const encoder = new TextEncoder();
+const DEFAULT_COLUMN_WIDTH = 180;
+const MIN_COLUMN_WIDTH = 80;
+const MAX_COLUMN_WIDTH = 900;
 let currentBaseConfig = null;
 let currentBaseName = "Base";
+let activeColumnResize = null;
 
 function escapeHtml(value) {
   return String(value).replace(/[&<>"']/g, (char) => ({
@@ -62,7 +66,20 @@ function renderModel(model, baseName) {
   const warningHtml = model.warnings.length
     ? '<div class="warnings">' + model.warnings.map(escapeHtml).join("<br>") + "</div>"
     : "";
-  const headerHtml = model.columns.map((column) => '<th>' + escapeHtml(column.label) + '</th>').join("");
+  const storedWidths = readStoredColumnWidths(baseName);
+  const columnWidths = model.columns.map((column) => {
+    return clampColumnWidth(storedWidths[column.property] ?? column.width ?? DEFAULT_COLUMN_WIDTH);
+  });
+  const colgroupHtml = columnWidths.map((width, columnIndex) => {
+    return '<col data-column-index="' + columnIndex + '" style="width: ' + width + 'px">';
+  }).join("");
+  const headerHtml = model.columns.map((column, columnIndex) => {
+    const label = escapeHtml(column.label);
+    return '<th data-column-index="' + columnIndex + '">' +
+      '<div class="column-header"><span class="column-label">' + label + '</span>' +
+      '<button class="column-resizer" type="button" data-column-index="' + columnIndex +
+      '" aria-label="Resize ' + label + ' column" title="Resize column"></button></div></th>';
+  }).join("");
   const rowHtml = model.rows.map((row, rowIndex) => (
     '<tr>' + row.cells.map((cell, columnIndex) => {
       const column = model.columns[columnIndex];
@@ -77,12 +94,144 @@ function renderModel(model, baseName) {
   document.body.innerHTML = '<main>' +
     '<header><h1>' + escapeHtml(baseName) + '</h1><span id="status">' + model.rows.length + ' rows</span></header>' +
     warningHtml +
-    '<div class="table-wrap"><table><thead><tr>' + headerHtml + '</tr></thead><tbody>' + rowHtml + '</tbody></table></div>' +
+    '<div class="table-wrap"><table style="--table-width: ' + sum(columnWidths) + 'px"><colgroup>' +
+    colgroupHtml + '</colgroup><thead><tr>' + headerHtml + '</tr></thead><tbody>' + rowHtml + '</tbody></table></div>' +
     '</main>';
   document.querySelector("tbody")?.addEventListener("focusin", rememberCellValue);
   document.querySelector("tbody")?.addEventListener("focusout", saveEditedCell);
   document.querySelector("tbody")?.addEventListener("keydown", handleCellKeydown);
+  document.querySelector("thead")?.addEventListener("pointerdown", beginColumnResize);
+  document.querySelector("thead")?.addEventListener("keydown", handleColumnResizeKeydown);
   window.currentModel = model;
+}
+
+function beginColumnResize(event) {
+  const handle = event.target.closest?.(".column-resizer");
+  if (!handle) {
+    return;
+  }
+
+  const columnIndex = Number(handle.dataset.columnIndex);
+  const column = document.querySelector('col[data-column-index="' + columnIndex + '"]');
+  if (!column) {
+    return;
+  }
+
+  event.preventDefault();
+  handle.classList.add("active");
+  document.body.classList.add("resizing-column");
+  activeColumnResize = {
+    columnIndex,
+    handle,
+    pointerId: event.pointerId,
+    startWidth: column.getBoundingClientRect().width,
+    startX: event.clientX,
+  };
+  handle.setPointerCapture?.(event.pointerId);
+  window.addEventListener("pointermove", updateColumnResize);
+  window.addEventListener("pointerup", finishColumnResize, { once: true });
+  window.addEventListener("pointercancel", finishColumnResize, { once: true });
+}
+
+function updateColumnResize(event) {
+  if (!activeColumnResize) {
+    return;
+  }
+  setColumnWidth(
+    activeColumnResize.columnIndex,
+    activeColumnResize.startWidth + event.clientX - activeColumnResize.startX,
+  );
+}
+
+function finishColumnResize() {
+  if (!activeColumnResize) {
+    return;
+  }
+  persistColumnWidths();
+  activeColumnResize.handle.classList.remove("active");
+  activeColumnResize.handle.releasePointerCapture?.(activeColumnResize.pointerId);
+  document.body.classList.remove("resizing-column");
+  window.removeEventListener("pointermove", updateColumnResize);
+  window.removeEventListener("pointerup", finishColumnResize);
+  window.removeEventListener("pointercancel", finishColumnResize);
+  activeColumnResize = null;
+}
+
+function handleColumnResizeKeydown(event) {
+  const handle = event.target.closest?.(".column-resizer");
+  if (!handle || (event.key !== "ArrowLeft" && event.key !== "ArrowRight")) {
+    return;
+  }
+  event.preventDefault();
+  const columnIndex = Number(handle.dataset.columnIndex);
+  const currentWidth = currentColumnWidths()[columnIndex] ?? DEFAULT_COLUMN_WIDTH;
+  setColumnWidth(columnIndex, currentWidth + (event.key === "ArrowRight" ? 16 : -16));
+  persistColumnWidths();
+}
+
+function setColumnWidth(columnIndex, width) {
+  const nextWidth = clampColumnWidth(width);
+  const column = document.querySelector('col[data-column-index="' + columnIndex + '"]');
+  if (!column) {
+    return;
+  }
+  column.style.width = nextWidth + "px";
+  if (window.currentModel?.columns[columnIndex]) {
+    window.currentModel.columns[columnIndex].width = nextWidth;
+  }
+  updateTableWidth();
+}
+
+function updateTableWidth() {
+  const table = document.querySelector("table");
+  if (table) {
+    table.style.setProperty("--table-width", sum(currentColumnWidths()) + "px");
+  }
+}
+
+function currentColumnWidths() {
+  return [...document.querySelectorAll("col[data-column-index]")].map((column) => {
+    return clampColumnWidth(parseFloat(column.style.width) || column.getBoundingClientRect().width);
+  });
+}
+
+function persistColumnWidths() {
+  const widths = {};
+  currentColumnWidths().forEach((width, columnIndex) => {
+    const property = window.currentModel?.columns[columnIndex]?.property;
+    if (property) {
+      widths[property] = width;
+    }
+  });
+  try {
+    window.localStorage?.setItem(columnWidthsStorageKey(currentBaseName), JSON.stringify(widths));
+  } catch (error) {
+    console.warn("Failed to store column widths", error);
+  }
+}
+
+function readStoredColumnWidths(baseName) {
+  try {
+    return JSON.parse(window.localStorage?.getItem(columnWidthsStorageKey(baseName)) ?? "{}");
+  } catch {
+    return {};
+  }
+}
+
+function columnWidthsStorageKey(baseName) {
+  return "silverbullet.obsidianBases.columnWidths." + baseName;
+}
+
+function clampColumnWidth(width) {
+  const number = Number(width);
+  if (!Number.isFinite(number)) {
+    return DEFAULT_COLUMN_WIDTH;
+  }
+  return Math.min(MAX_COLUMN_WIDTH, Math.max(MIN_COLUMN_WIDTH, Math.round(number)));
+}
+
+function sum(values) {
+  return values.reduce((total, value) => total + value, 0);
 }
 
 function rememberCellValue(event) {

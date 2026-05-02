@@ -107,6 +107,7 @@ test("builds rows matching generated music folder and extension filters", () => 
 
   assert.equal(model.rows.length, 3);
   assert.equal(model.columns[0].label, "Name");
+  assert.equal(model.columns[1].width, 220);
   assert.equal(model.columns[2].property, "primary genre");
   assert.equal(model.columns[3].property, "instruments");
   assert.deepEqual(model.rows.map((row) => row.cells[0]).sort(), [

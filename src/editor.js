@@ -47,24 +47,64 @@ export async function editor() {
       border-collapse: collapse;
       font-size: 14px;
       min-width: 100%;
-      table-layout: auto;
-      white-space: nowrap;
+      table-layout: fixed;
+      width: max(100%, var(--table-width, 100%));
     }
     th,
     td {
       border-bottom: 1px solid color-mix(in srgb, CanvasText 14%, Canvas);
-      max-width: 420px;
       overflow: hidden;
       padding: 8px 10px;
       text-align: left;
-      text-overflow: ellipsis;
       vertical-align: top;
+      white-space: normal;
+      overflow-wrap: anywhere;
+      word-break: normal;
     }
     th {
       background: color-mix(in srgb, CanvasText 6%, Canvas);
       font-weight: 620;
       position: sticky;
       top: 0;
+      user-select: none;
+    }
+    .column-header {
+      align-items: center;
+      display: flex;
+      gap: 8px;
+      min-height: 20px;
+    }
+    .column-label {
+      flex: 1 1 auto;
+      min-width: 0;
+    }
+    .column-resizer {
+      align-self: stretch;
+      background: transparent;
+      border: 0;
+      border-radius: 3px;
+      color: inherit;
+      cursor: col-resize;
+      flex: 0 0 10px;
+      margin: -4px -8px -4px 0;
+      padding: 0;
+      position: relative;
+      touch-action: none;
+    }
+    .column-resizer::after {
+      background: color-mix(in srgb, CanvasText 24%, Canvas);
+      bottom: 3px;
+      content: "";
+      position: absolute;
+      right: 4px;
+      top: 3px;
+      width: 1px;
+    }
+    .column-resizer:hover::after,
+    .column-resizer:focus-visible::after,
+    body.resizing-column .column-resizer.active::after {
+      background: light-dark(#2563eb, #7dd3fc);
+      width: 2px;
     }
     tr:last-child td {
       border-bottom: 0;

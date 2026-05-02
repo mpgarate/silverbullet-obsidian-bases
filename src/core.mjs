@@ -51,6 +51,7 @@ export function buildTableModel(baseConfig, files) {
     property,
     label: propertyLabel(baseConfig, property),
     editable: isEditableProperty(property),
+    width: columnWidth(view, property),
   }));
 
   const rows = files
@@ -340,6 +341,24 @@ function propertyLabel(baseConfig, property) {
     return property.slice(5);
   }
   return property;
+}
+
+function columnWidth(view, property) {
+  const columnSize = view.columnSize ?? {};
+  for (const key of columnSizeKeys(property)) {
+    const width = Number(columnSize[key]);
+    if (Number.isFinite(width) && width > 0) {
+      return width;
+    }
+  }
+  return null;
+}
+
+function columnSizeKeys(property) {
+  if (property.startsWith("file.") || property.startsWith("note.")) {
+    return [property];
+  }
+  return [property, `note.${property}`];
 }
 
 function formatValue(value) {
