@@ -1,0 +1,14 @@
+{
+  "name": "silverbullet-obsidian-bases",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "npm run generate-viewer && npx plug-compile obsidian-bases.plug.yaml && node scripts/install-built-plug.mjs",
+    "generate-viewer": "node scripts/generate-viewer.mjs",
+    "test": "node --test"
+  },
+  "devDependencies": {
+    "@silverbulletmd/silverbullet": "^2.6.1"
+  }
+}
