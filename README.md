@@ -1,6 +1,6 @@
 # SilverBullet Obsidian Bases Plug
 
-This plug registers `.base` files as SilverBullet document editor files and renders an Obsidian Bases table view.
+This plug registers `.base` files as SilverBullet document editor files, renders an Obsidian Bases table view, and exposes `.base` content to Silversearch via the `silversearch:index` event.
 
 ## Build
 

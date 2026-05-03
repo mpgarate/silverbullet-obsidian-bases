@@ -103,6 +103,23 @@ export function makeRowFromFile(meta, markdown) {
   };
 }
 
+export function buildBaseSearchContent(path, yamlText) {
+  const baseName = normalizePath(path).split("/").pop()?.replace(/\.base$/i, "") ?? "";
+  const parts = ["Obsidian Base", baseName];
+
+  try {
+    const baseConfig = parseYaml(yamlText);
+    collectSearchableYamlValues(baseConfig, parts);
+  } catch {
+    // Keep malformed base files searchable by their raw source.
+  }
+
+  parts.push(yamlText);
+  return unique(parts.flatMap(splitSearchContentLine))
+    .filter(Boolean)
+    .join("\n");
+}
+
 function parseBlock(lines, index, indent) {
   if (index >= lines.length || lines[index].indent < indent) {
     return [null, index];
@@ -377,4 +394,30 @@ function normalizePath(path) {
 
 function unique(values) {
   return [...new Set(values)];
+}
+
+function collectSearchableYamlValues(value, parts) {
+  if (value == null) {
+    return;
+  }
+  if (Array.isArray(value)) {
+    for (const item of value) {
+      collectSearchableYamlValues(item, parts);
+    }
+    return;
+  }
+  if (typeof value === "object") {
+    for (const [key, item] of Object.entries(value)) {
+      parts.push(key);
+      collectSearchableYamlValues(item, parts);
+    }
+    return;
+  }
+  parts.push(String(value));
+}
+
+function splitSearchContentLine(value) {
+  return String(value)
+    .split(/\r?\n/)
+    .map((line) => line.trim());
 }

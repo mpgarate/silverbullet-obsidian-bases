@@ -4,3 +4,7 @@ functions:
     path: ./src/editor.js:editor
     editor:
       - base
+  indexBaseDocument:
+    path: ./src/silversearch.js:indexBaseDocument
+    events:
+      - silversearch:index

@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 import {
+  buildBaseSearchContent,
   buildTableModel,
   makeRowFromFile,
   parseMarkdownFrontmatter,
@@ -167,4 +168,14 @@ test("rejects edits to file properties", () => {
     () => updateMarkdownFrontmatterValue(musicNotes["Music/Artists/bjork.md"], "file.name", "new-name"),
     /read-only property/,
   );
+});
+
+test("builds searchable content for base files", () => {
+  const content = buildBaseSearchContent("Databases/Music.base", musicBase);
+
+  assert.match(content, /Obsidian Base/);
+  assert.match(content, /Music/);
+  assert.match(content, /Albums/);
+  assert.match(content, /primary genre/);
+  assert.match(content, /Music\/Artists/);
 });
