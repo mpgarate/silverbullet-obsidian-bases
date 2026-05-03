@@ -67,9 +67,8 @@ export async function editor() {
     table {
       border-collapse: collapse;
       font-size: 14px;
-      min-width: 100%;
       table-layout: fixed;
-      width: max(100%, var(--table-width, 100%));
+      width: var(--table-width, 100%);
     }
     th,
     td {
@@ -125,24 +124,26 @@ export async function editor() {
       min-width: 10px;
     }
     .column-resizer {
-      align-self: stretch;
       background: transparent;
       border: 0;
       border-radius: 3px;
+      bottom: 0;
       color: inherit;
       cursor: col-resize;
-      flex: 0 0 10px;
-      margin: -4px -8px -4px 0;
+      position: absolute;
+      right: 0;
+      top: 0;
+      width: 8px;
       padding: 0;
-      position: relative;
       touch-action: none;
+      z-index: 2;
     }
     .column-resizer::after {
       background: color-mix(in srgb, CanvasText 24%, Canvas);
       bottom: 3px;
       content: "";
       position: absolute;
-      right: 4px;
+      right: 0;
       top: 3px;
       width: 1px;
     }

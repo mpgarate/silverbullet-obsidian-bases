@@ -158,17 +158,32 @@ test("leaves table rows in their existing order when sort direction is inactive"
   ]);
 });
 
-test("unsupported filters fail closed with a warning", () => {
+test("builds rows matching Keith Jarrett album tag filters", () => {
   const model = buildTableModel({
     views: [{
       type: "table",
-      filters: "file.hasTag(\"computer-device\")",
-      order: ["file.name"],
+      filters: "file.hasTag(\"keith-jarrett-album\")",
+      order: ["file.name", "title"],
     }],
-  }, [makeRowFromFile({ name: "Example.md" }, "---\ntags:\n  - computer-device\n---\n")]);
+  }, [
+    makeRowFromFile({ name: "Music/The Koln Concert.md" }, `---
+tags:
+  - keith-jarrett-album
+title: The Koln Concert
+---
+`),
+    makeRowFromFile({ name: "Music/Solo Concerts Bremen Lausanne.md" }, `---
+tags:
+  - keith-jarrett-solo
+title: "Solo Concerts: Bremen/Lausanne"
+---
+`),
+  ]);
 
-  assert.equal(model.rows.length, 0);
-  assert.match(model.warnings[0], /Unsupported filter expression/);
+  assert.deepEqual(model.rows.map((row) => row.cells), [
+    ["The Koln Concert", "The Koln Concert"],
+  ]);
+  assert.deepEqual(model.warnings, []);
 });
 
 test("updates scalar frontmatter values for editable table cells", () => {

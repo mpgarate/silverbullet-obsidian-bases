@@ -240,6 +240,11 @@ function serializeFlatYaml(value) {
 }
 
 function evaluateFilterExpression(expression, row, warnings) {
+  const tagMatch = expression.match(/^file\.hasTag\((.+)\)$/);
+  if (tagMatch) {
+    return fileHasTag(row, parseScalar(tagMatch[1].trim()));
+  }
+
   const match = expression.match(/^(.+?)\s*(==|!=|>=|<=|>|<)\s*(.+)$/);
   if (!match) {
     warnings.push(`Unsupported filter expression: ${expression}`);
@@ -266,6 +271,17 @@ function evaluateFilterExpression(expression, row, warnings) {
       warnings.push(`Unsupported filter operator: ${operator}`);
       return false;
   }
+}
+
+function fileHasTag(row, tag) {
+  if (typeof tag !== "string" || tag === "") {
+    return false;
+  }
+  const tags = row.note?.tags;
+  if (Array.isArray(tags)) {
+    return tags.includes(tag);
+  }
+  return tags === tag;
 }
 
 function collectEqualityFilters(filter) {

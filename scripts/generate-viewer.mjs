@@ -125,6 +125,9 @@ function renderModel(model, baseName) {
     '<div class="table-wrap"><table style="--table-width: ' + sum(columnWidths) + 'px"><colgroup>' +
     colgroupHtml + '</colgroup><thead><tr>' + headerHtml + '</tr></thead><tbody>' + rowHtml + '</tbody></table></div>' +
     '</main>';
+  window.currentModel = displayModel;
+  window.baseModel = model;
+  fitTableToContainer(columnWidths);
   document.getElementById("add-entry")?.addEventListener("click", addEntry);
   document.querySelector("tbody")?.addEventListener("focusin", rememberCellValue);
   document.querySelector("tbody")?.addEventListener("focusout", saveEditedCell);
@@ -133,8 +136,6 @@ function renderModel(model, baseName) {
   document.querySelector("thead")?.addEventListener("pointerdown", beginColumnResize);
   document.querySelector("thead")?.addEventListener("keydown", handleColumnResizeKeydown);
   document.querySelector("thead")?.addEventListener("click", changeColumnSort);
-  window.currentModel = displayModel;
-  window.baseModel = model;
 }
 
 function applyCurrentSort(model) {
@@ -233,9 +234,11 @@ function beginColumnResize(event) {
 
   const columnIndex = Number(handle.dataset.columnIndex);
   const column = document.querySelector('col[data-column-index="' + columnIndex + '"]');
-  if (!column) {
+  const headerCell = handle.closest("th");
+  if (!column || !headerCell) {
     return;
   }
+  const headerBounds = headerCell.getBoundingClientRect();
 
   event.preventDefault();
   handle.classList.add("active");
@@ -244,8 +247,8 @@ function beginColumnResize(event) {
     columnIndex,
     handle,
     pointerId: event.pointerId,
+    startRight: headerBounds.right,
     startWidth: column.getBoundingClientRect().width,
-    startX: event.clientX,
   };
   handle.setPointerCapture?.(event.pointerId);
   window.addEventListener("pointermove", updateColumnResize);
@@ -259,7 +262,7 @@ function updateColumnResize(event) {
   }
   setColumnWidth(
     activeColumnResize.columnIndex,
-    activeColumnResize.startWidth + event.clientX - activeColumnResize.startX,
+    activeColumnResize.startWidth + event.clientX - activeColumnResize.startRight,
   );
 }
 
@@ -299,6 +302,34 @@ function setColumnWidth(columnIndex, width) {
   if (window.currentModel?.columns[columnIndex]) {
     window.currentModel.columns[columnIndex].width = nextWidth;
   }
+  updateTableWidth();
+}
+
+function fitTableToContainer(columnWidths) {
+  const tableWrap = document.querySelector(".table-wrap");
+  const columns = [...document.querySelectorAll("col[data-column-index]")];
+  if (!tableWrap || columns.length === 0) {
+    return;
+  }
+
+  const availableWidth = Math.floor(tableWrap.clientWidth);
+  const currentWidth = sum(columnWidths);
+  if (availableWidth <= currentWidth) {
+    updateTableWidth();
+    return;
+  }
+
+  const extraWidth = availableWidth - currentWidth;
+  const extraPerColumn = Math.floor(extraWidth / columns.length);
+  let remainder = extraWidth - extraPerColumn * columns.length;
+  columns.forEach((column, columnIndex) => {
+    const width = columnWidths[columnIndex] + extraPerColumn + (remainder > 0 ? 1 : 0);
+    remainder -= 1;
+    column.style.width = width + "px";
+    if (window.currentModel?.columns[columnIndex]) {
+      window.currentModel.columns[columnIndex].width = width;
+    }
+  });
   updateTableWidth();
 }
 
