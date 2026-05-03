@@ -1,10 +1,27 @@
-# SilverBullet Bases Plug
+# silverbullet-bases
 
-This plug registers `.base` files as SilverBullet document editor files, renders an Obsidian Bases table view, and exposes `.base` content to Silversearch via the `silversearch:index` event.
+A [SilverBullet](https://silverbullet.md) plug that registers `.base` files as a document editor and renders an [Obsidian Bases](https://obsidian.md/help/bases/syntax) table view over your space's notes. Also exposes `.base` content to [Silversearch](https://silverbullet.md/Plugs/Silversearch) via the `silversearch:index` event.
+
+## Features
+
+- Table views over Markdown notes using `.base` YAML configuration.
+- Properties: Markdown frontmatter keys and the `file.name`, `file.ext`, `file.folder` virtual properties.
+- Filters: comparison operators (`==`, `!=`, `<`, `<=`, `>`, `>=`) combined recursively with `and` / `or` / `not`.
+- Ordered columns with optional display-name overrides and persisted column widths.
+- Click column headers to sort ascending → descending → unsorted.
+- In-place editing for frontmatter cells (Enter to save, Escape to cancel).
+- "Add entry" creates a new note pre-populated with the base's equality filters as frontmatter.
+- `.base` files are indexed by Silversearch when that plug is installed.
 
 ## Install
 
-Add this plug to your SilverBullet `CONFIG.md` page:
+Recommended (Library install):
+
+1. In SilverBullet, run the `Library: Install` command.
+2. Paste the URL to this repo's `PLUG.md`, e.g. `https://github.com/mpgarate/silverbullet-bases/blob/main/PLUG.md`.
+3. Run `Plugs: Update` and `Plugs: Reload`.
+
+Alternative (direct `space-lua` config):
 
 ````markdown
 ```space-lua
@@ -16,18 +33,16 @@ config.set {
 ```
 ````
 
-Replace `mpgarate` with the GitHub account or organization that hosts this repository, then run `Plugs: Update` in SilverBullet.
-
 ## Build
+
+Requires [Node.js](https://nodejs.org/).
 
 ```bash
 npm install
 npm run build
 ```
 
-`npm run build` regenerates the iframe viewer script and compiles the distributable root-level `silverbullet-bases.plug.js` bundle.
-
-Commit `silverbullet-bases.plug.js` when publishing a release or updating the plug for GitHub-based installation.
+`npm run build` regenerates the iframe viewer script and compiles the distributable `silverbullet-bases.plug.js` bundle. Commit the bundle (and `PLUG.md`) when publishing a release so users can install it from GitHub.
 
 ## Test
 
@@ -35,13 +50,16 @@ Commit `silverbullet-bases.plug.js` when publishing a release or updating the pl
 npm test
 ```
 
-The first implementation supports the example base shape in this vault: table views, Markdown frontmatter properties, `file.name`, `file.ext`, `file.folder`, simple comparison filters, recursive `and`/`or`/`not`, and ordered columns.
+## Limitations
 
-## Maintenance
+This plug ships a small hand-rolled YAML parser scoped to the syntax used in `.base` files and Markdown frontmatter. It supports scalar values, sequences, nested mappings, and quoted strings, but does not handle full YAML 1.2 (anchors, multi-line strings, flow-style collections, etc.). Filter expressions are limited to the operators listed above; functions like `file.hasTag(...)` are not supported and produce a warning in the rendered view.
+
+## Contributing
 
 When adding, removing, or repurposing files in this plug, update `ARCHITECTURE.md` in the same change.
 
 ## Resources
+
 - https://silverbullet.md/Plugs
-- https://v2.silverbullet.md/Plugs/Development
+- https://silverbullet.md/Plugs/Development
 - https://obsidian.md/help/bases/syntax

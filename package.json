@@ -3,6 +3,7 @@
   "version": "0.1.0",
   "description": "SilverBullet plug for viewing Obsidian Bases .base files.",
   "license": "MIT",
+  "private": true,
   "type": "module",
   "scripts": {
     "build": "npm run generate-viewer && npx plug-compile silverbullet-bases.plug.yaml",

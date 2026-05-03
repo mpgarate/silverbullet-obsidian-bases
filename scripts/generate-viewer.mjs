@@ -419,7 +419,6 @@ async function openBase(event) {
 }
 
 window.silverbullet?.addEventListener?.("file-open", openBase);
-window.silverbullet?.addEventLister?.("file-open", openBase);
 `;
 
 await mkdir(new URL("../src/generated", import.meta.url), { recursive: true });
