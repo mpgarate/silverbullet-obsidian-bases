@@ -1,4 +1,4 @@
-name: silverbullet-bases
+name: obsidian-bases
 functions:
   editor:
     path: ./src/editor.js:editor

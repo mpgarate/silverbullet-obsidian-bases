@@ -1,4 +1,4 @@
-# silverbullet-bases
+# silverbullet-obsidian-bases
 
 A [SilverBullet](https://silverbullet.md) plug that registers `.base` files as a document editor and renders an [Obsidian Bases](https://obsidian.md/help/bases/syntax) table view over your space's notes. Also exposes `.base` content to [Silversearch](https://silverbullet.md/Plugs/Silversearch) via the `silversearch:index` event.
 
@@ -18,7 +18,7 @@ A [SilverBullet](https://silverbullet.md) plug that registers `.base` files as a
 Recommended (Library install):
 
 1. In SilverBullet, run the `Library: Install` command.
-2. Paste the URL to this repo's `PLUG.md`, e.g. `https://github.com/mpgarate/silverbullet-bases/blob/main/PLUG.md`.
+2. Paste the URL to this repo's `PLUG.md`, e.g. `https://github.com/mpgarate/obsidian-bases/blob/main/PLUG.md`.
 3. Run `Plugs: Update` and `Plugs: Reload`.
 
 Alternative (direct `space-lua` config):
@@ -27,7 +27,7 @@ Alternative (direct `space-lua` config):
 ```space-lua
 config.set {
   plugs = {
-    "github:mpgarate/silverbullet-bases/silverbullet-bases.plug.js"
+    "github:mpgarate/obsidian-bases/obsidian-bases.plug.js"
   }
 }
 ```
@@ -42,7 +42,7 @@ npm install
 npm run build
 ```
 
-`npm run build` regenerates the iframe viewer script and compiles the distributable `silverbullet-bases.plug.js` bundle. Commit the bundle (and `PLUG.md`) when publishing a release so users can install it from GitHub.
+`npm run build` regenerates the iframe viewer script and compiles the distributable `obsidian-bases.plug.js` bundle. Commit the bundle (and `PLUG.md`) when publishing a release so users can install it from GitHub.
 
 ## Test
 

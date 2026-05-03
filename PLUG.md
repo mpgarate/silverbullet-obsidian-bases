@@ -1,11 +1,11 @@
 ---
-name: Library/mpgarate/silverbullet-bases/PLUG
+name: Library/mpgarate/obsidian-bases/PLUG
 tags: meta/library
 files:
-- silverbullet-bases.plug.js
+- obsidian-bases.plug.js
 ---
 
-# silverbullet-bases
+# obsidian-bases
 
 Registers `.base` files as a SilverBullet document editor and renders an Obsidian Bases table view. Also exposes `.base` content to the Silversearch plug via the `silversearch:index` event.
 
