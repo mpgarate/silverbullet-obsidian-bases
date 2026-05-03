@@ -96,9 +96,11 @@ export async function editor() {
       min-height: 20px;
     }
     .column-label {
-      flex: 1 1 auto;
+      display: inline-block;
+      flex: 0 1 auto;
       min-width: 0;
       outline: 0;
+      max-width: 100%;
     }
     .column-label[contenteditable="true"] {
       cursor: text;

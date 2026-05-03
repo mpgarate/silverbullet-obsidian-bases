@@ -87,10 +87,12 @@ function renderModel(model, baseName) {
   const warningHtml = model.warnings.length
     ? '<div class="warnings">' + model.warnings.map(escapeHtml).join("<br>") + "</div>"
     : "";
+  const currentWidths = readCurrentColumnWidthsByProperty();
   const storedWidths = readStoredColumnWidths(baseName);
   const columnWidths = displayModel.columns.map((column) => {
-    return clampColumnWidth(storedWidths[column.property] ?? column.width ?? DEFAULT_COLUMN_WIDTH);
+    return clampColumnWidth(currentWidths[column.property] ?? storedWidths[column.property] ?? column.width ?? DEFAULT_COLUMN_WIDTH);
   });
+  const hasCurrentWidths = displayModel.columns.every((column) => currentWidths[column.property] != null);
   const colgroupHtml = columnWidths.map((width, columnIndex) => {
     return '<col data-column-index="' + columnIndex + '" style="width: ' + width + 'px">';
   }).join("");
@@ -137,7 +139,11 @@ function renderModel(model, baseName) {
     '</main>';
   window.currentModel = displayModel;
   window.baseModel = model;
-  fitTableToContainer(columnWidths);
+  if (!hasCurrentWidths) {
+    fitTableToContainer(columnWidths);
+  } else {
+    updateTableWidth();
+  }
   document.getElementById("add-entry")?.addEventListener("click", addEntry);
   document.querySelector("tbody")?.addEventListener("focusin", rememberCellValue);
   document.querySelector("tbody")?.addEventListener("focusout", saveEditedCell);
@@ -431,6 +437,17 @@ function currentColumnWidths() {
   return [...document.querySelectorAll("col[data-column-index]")].map((column) => {
     return clampColumnWidth(parseFloat(column.style.width) || column.getBoundingClientRect().width);
   });
+}
+
+function readCurrentColumnWidthsByProperty() {
+  const widths = {};
+  currentColumnWidths().forEach((width, columnIndex) => {
+    const property = window.currentModel?.columns[columnIndex]?.property;
+    if (property) {
+      widths[property] = width;
+    }
+  });
+  return widths;
 }
 
 function persistColumnWidths() {
