@@ -2,6 +2,22 @@
 
 This plug registers `.base` files as SilverBullet document editor files, renders an Obsidian Bases table view, and exposes `.base` content to Silversearch via the `silversearch:index` event.
 
+## Install
+
+Add this plug to your SilverBullet `CONFIG.md` page:
+
+````markdown
+```space-lua
+config.set {
+  plugs = {
+    "github:YOUR_GITHUB_USER/obsidian-bases-plug/obsidian-bases.plug.js"
+  }
+}
+```
+````
+
+Replace `YOUR_GITHUB_USER` with the GitHub account or organization that hosts this repository, then run `Plugs: Update` in SilverBullet.
+
 ## Build
 
 ```bash
@@ -9,7 +25,9 @@ npm install
 npm run build
 ```
 
-`npm run build` regenerates the iframe viewer script, compiles `obsidian-bases.plug.js`, and copies it to `../_plug/obsidian-bases.plug.js`.
+`npm run build` regenerates the iframe viewer script and compiles the distributable root-level `obsidian-bases.plug.js` bundle.
+
+Commit `obsidian-bases.plug.js` when publishing a release or updating the plug for GitHub-based installation.
 
 ## Test
 
@@ -25,4 +43,5 @@ When adding, removing, or repurposing files in this plug, update `ARCHITECTURE.m
 
 ## Resources
 - https://silverbullet.md/Plugs
+- https://v2.silverbullet.md/Plugs/Development
 - https://obsidian.md/help/bases/syntax
