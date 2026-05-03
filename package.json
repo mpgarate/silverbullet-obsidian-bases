@@ -1,11 +1,11 @@
 {
-  "name": "silverbullet-obsidian-bases",
+  "name": "silverbullet-bases",
   "version": "0.1.0",
   "description": "SilverBullet plug for viewing Obsidian Bases .base files.",
   "license": "MIT",
   "type": "module",
   "scripts": {
-    "build": "npm run generate-viewer && npx plug-compile obsidian-bases.plug.yaml",
+    "build": "npm run generate-viewer && npx plug-compile silverbullet-bases.plug.yaml",
     "generate-viewer": "node scripts/generate-viewer.mjs",
     "test": "node --test"
   },
