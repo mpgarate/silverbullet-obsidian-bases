@@ -8,6 +8,9 @@ import {
   makeRowFromFile,
   parseMarkdownFrontmatter,
   parseYaml,
+  renameBaseProperty,
+  renameMarkdownFrontmatterProperty,
+  renamedPagePath,
   sortTableRows,
   updateMarkdownFrontmatterValue,
 } from "../src/core.mjs";
@@ -220,6 +223,86 @@ test("rejects edits to file properties", () => {
   );
 });
 
+test("renames frontmatter properties while preserving values and body text", () => {
+  const updated = renameMarkdownFrontmatterProperty(
+    musicNotes["Music/Artists/nina-simone.md"],
+    "favorite track",
+    "standout track",
+  );
+
+  assert.deepEqual(parseMarkdownFrontmatter(updated), {
+    artist: "Nina Simone",
+    "primary genre": "Jazz",
+    instruments: ["piano", "vocals"],
+    "release year": "1965",
+    label: "Philips",
+    "standout track": "Feeling Good",
+  });
+  assert.match(updated, /Generated musician fixture/);
+});
+
+test("rejects frontmatter property renames that would overwrite an existing key", () => {
+  assert.throws(
+    () => renameMarkdownFrontmatterProperty(
+      musicNotes["Music/Artists/bjork.md"],
+      "artist",
+      "label",
+    ),
+    /target property already exists/,
+  );
+});
+
+test("renames base property references in order, filters, properties, and column widths", () => {
+  const base = parseYaml(`filters:
+  and:
+    - note.status == "published"
+properties:
+  status:
+    displayName: Status
+views:
+  - type: table
+    filters:
+      and:
+        - status == "published"
+        - file.ext == "md"
+    order:
+      - file.name
+      - status
+    columnSize:
+      note.status: 140
+`);
+
+  const renamed = renameBaseProperty(base, "status", "publication status");
+
+  assert.deepEqual(renamed.filters.and, ['note.publication status == "published"']);
+  assert.deepEqual(renamed.views[0].filters.and, [
+    'publication status == "published"',
+    'file.ext == "md"',
+  ]);
+  assert.deepEqual(renamed.views[0].order, ["file.name", "publication status"]);
+  assert.equal(renamed.views[0].columnSize["note.publication status"], 140);
+  assert.equal(renamed.properties["publication status"].displayName, "publication status");
+});
+
+test("rejects base property renames that would overwrite existing base metadata", () => {
+  const base = parseYaml(`properties:
+  artist:
+    displayName: Artist
+  label:
+    displayName: Label
+views:
+  - type: table
+    order:
+      - artist
+      - label
+`);
+
+  assert.throws(
+    () => renameBaseProperty(base, "artist", "label"),
+    /target property already exists/,
+  );
+});
+
 test("builds a new entry draft that matches simple base equality filters", () => {
   const draft = buildNewEntryDraft(parseYaml(musicBase), "Databases/Music.base", "Alice Coltrane");
 
@@ -261,6 +344,14 @@ views:
 test("normalizes empty new entry names", () => {
   assert.equal(entryFileName(""), "Untitled.md");
   assert.equal(entryFileName("Draft/One.md"), "Draft-One.md");
+});
+
+test("builds renamed page paths from edited titles in the same folder", () => {
+  assert.equal(
+    renamedPagePath("Music/The Koln Concert.md", "The Koln Concert.md"),
+    "Music/The Koln Concert.md",
+  );
+  assert.equal(renamedPagePath("My Song.md", "New / Idea"), "New - Idea.md");
 });
 
 test("builds searchable content for base files", () => {

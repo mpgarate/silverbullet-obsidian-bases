@@ -8,6 +8,10 @@ export function parseYaml(text) {
   return value;
 }
 
+export function serializeYaml(value) {
+  return yamlDump(value ?? {}, { lineWidth: -1, noRefs: true });
+}
+
 export function parseMarkdownFrontmatter(text) {
   const normalized = text.replace(/\r\n?/g, "\n");
   const bounds = findFrontmatterBounds(normalized);
@@ -102,6 +106,64 @@ export function updateMarkdownFrontmatterValue(markdown, property, textValue) {
   return `${normalized.slice(0, bounds.blockStart)}${nextFrontmatter}${normalized.slice(bounds.blockEnd)}`;
 }
 
+export function renameMarkdownFrontmatterProperty(markdown, oldProperty, newProperty) {
+  if (!isEditableProperty(oldProperty) || !isEditableProperty(newProperty)) {
+    throw new Error("Cannot rename read-only file properties.");
+  }
+
+  const oldKey = frontmatterKey(oldProperty);
+  const newKey = frontmatterKey(newProperty);
+  if (!oldKey || !newKey) {
+    throw new Error("Property names cannot be empty.");
+  }
+  if (oldKey === newKey) {
+    return markdown;
+  }
+
+  const normalized = markdown.replace(/\r\n?/g, "\n");
+  const frontmatter = parseMarkdownFrontmatter(normalized);
+  if (!Object.hasOwn(frontmatter, oldKey)) {
+    return normalized;
+  }
+  if (Object.hasOwn(frontmatter, newKey)) {
+    throw new Error(`Cannot rename ${oldKey} to ${newKey}; target property already exists.`);
+  }
+
+  const renamed = {};
+  for (const [key, value] of Object.entries(frontmatter)) {
+    renamed[key === oldKey ? newKey : key] = value;
+  }
+
+  const yaml = serializeFlatYaml(renamed);
+  const nextFrontmatter = `---\n${yaml}${yaml ? "\n" : ""}---\n`;
+  const bounds = findFrontmatterBounds(normalized);
+  if (!bounds) {
+    return `${nextFrontmatter}${normalized}`;
+  }
+  return `${normalized.slice(0, bounds.blockStart)}${nextFrontmatter}${normalized.slice(bounds.blockEnd)}`;
+}
+
+export function renameBaseProperty(baseConfig, oldProperty, newProperty) {
+  if (!isEditableProperty(oldProperty) || !isEditableProperty(newProperty)) {
+    throw new Error("Cannot rename read-only file properties.");
+  }
+
+  const normalizedNewProperty = normalizeRenamedProperty(oldProperty, newProperty);
+  if (!frontmatterKey(normalizedNewProperty)) {
+    throw new Error("Property names cannot be empty.");
+  }
+  if (oldProperty === normalizedNewProperty) {
+    return baseConfig;
+  }
+
+  const renamed = renamePropertyReferences(baseConfig, oldProperty, normalizedNewProperty);
+  const propertyConfig = renamed.properties?.[frontmatterKey(normalizedNewProperty)];
+  if (propertyConfig && typeof propertyConfig === "object" && Object.hasOwn(propertyConfig, "displayName")) {
+    propertyConfig.displayName = frontmatterKey(normalizedNewProperty);
+  }
+  return renamed;
+}
+
 export function buildNewEntryDraft(baseConfig, basePath, title) {
   const view = (baseConfig.views ?? []).find((candidate) => candidate.type === "table");
   const equalityFilters = collectEqualityFilters({ and: [baseConfig.filters, view?.filters].filter(Boolean) });
@@ -151,6 +213,12 @@ export function entryFileName(title) {
     .replace(/[\u0000-\u001f]/g, "")
     .replace(/\s+/g, " ");
   return `${normalized || "Untitled"}.md`;
+}
+
+export function renamedPagePath(currentPath, title) {
+  const normalizedPath = normalizePath(currentPath);
+  const folder = normalizedPath.includes("/") ? normalizedPath.slice(0, normalizedPath.lastIndexOf("/")) : "";
+  return normalizePath([folder, entryFileName(title)].filter(Boolean).join("/"));
 }
 
 export function buildBaseSearchContent(path, yamlText) {
@@ -230,6 +298,64 @@ function parseEditedValue(textValue, previousValue) {
     return text === "true";
   }
   return String(textValue ?? "");
+}
+
+function normalizeRenamedProperty(oldProperty, newProperty) {
+  const text = String(newProperty ?? "").trim();
+  if (oldProperty.startsWith("note.") && !text.startsWith("note.") && !text.startsWith("file.")) {
+    return `note.${text}`;
+  }
+  return text;
+}
+
+function renamePropertyReferences(value, oldProperty, newProperty) {
+  if (Array.isArray(value)) {
+    return value.map((item) => renamePropertyReferences(item, oldProperty, newProperty));
+  }
+  if (value == null || typeof value !== "object") {
+    return renamePropertyExpression(value, oldProperty, newProperty);
+  }
+
+  const renamed = {};
+  for (const [key, item] of Object.entries(value)) {
+    const nextKey = renamePropertyReferenceKey(key, oldProperty, newProperty);
+    if (Object.hasOwn(renamed, nextKey)) {
+      throw new Error(`Cannot rename ${key} to ${nextKey}; target property already exists.`);
+    }
+    renamed[nextKey] = renamePropertyReferences(item, oldProperty, newProperty);
+  }
+  return renamed;
+}
+
+function renamePropertyReferenceKey(key, oldProperty, newProperty) {
+  if (key === oldProperty) {
+    return newProperty;
+  }
+  const oldKey = frontmatterKey(oldProperty);
+  const newKey = frontmatterKey(newProperty);
+  if (key === oldKey) {
+    return newKey;
+  }
+  if (key === `note.${oldKey}`) {
+    return `note.${newKey}`;
+  }
+  return key;
+}
+
+function renamePropertyExpression(value, oldProperty, newProperty) {
+  if (typeof value !== "string") {
+    return value;
+  }
+  const operatorMatch = value.match(/^(.+?)(\s*(?:==|!=|>=|<=|>|<)\s*.+)$/);
+  if (!operatorMatch) {
+    return renamePropertyReferenceKey(value, oldProperty, newProperty);
+  }
+  const left = operatorMatch[1].trim();
+  const nextLeft = renamePropertyReferenceKey(left, oldProperty, newProperty);
+  if (left === nextLeft) {
+    return value;
+  }
+  return nextLeft + operatorMatch[2];
 }
 
 function serializeFlatYaml(value) {

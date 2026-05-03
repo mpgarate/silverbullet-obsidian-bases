@@ -55,6 +55,10 @@ async function writeFileText(name, text) {
   await syscall("space.writeFile", name, encoder.encode(text));
 }
 
+async function deleteFile(name) {
+  await syscall("space.deleteFile", name);
+}
+
 async function fileExists(name) {
   return await syscall("space.fileExists", name);
 }
@@ -96,9 +100,10 @@ function renderModel(model, baseName) {
     const sortText = direction === "ascending" ? " &uarr;" : direction === "descending" ? " &darr;" : "";
     const ariaSort = direction ?? "none";
     return '<th data-column-index="' + columnIndex + '" aria-sort="' + ariaSort + '">' +
-      '<div class="column-header"><button class="column-sort" type="button" data-column-index="' + columnIndex +
-      '" title="Sort by ' + label + '">' +
-      '<span class="column-label">' + label + '</span><span class="sort-indicator" aria-hidden="true">' + sortText + '</span></button>' +
+      '<div class="column-header" title="Sort by ' + label + '">' +
+      '<span class="column-label" contenteditable="' + (column.editable ? "true" : "false") + '" spellcheck="false" data-column-index="' + columnIndex +
+      '" title="' + (column.editable ? "Rename property" : "Read-only property") + '">' + label + '</span>' +
+      '<span class="sort-indicator" aria-hidden="true">' + sortText + '</span>' +
       '<button class="column-resizer" type="button" data-column-index="' + columnIndex +
       '" aria-label="Resize ' + label + ' column" title="Resize column"></button></div></th>';
   }).join("");
@@ -135,6 +140,9 @@ function renderModel(model, baseName) {
   document.querySelector("tbody")?.addEventListener("click", openLinkedPage);
   document.querySelector("thead")?.addEventListener("pointerdown", beginColumnResize);
   document.querySelector("thead")?.addEventListener("keydown", handleColumnResizeKeydown);
+  document.querySelector("thead")?.addEventListener("focusin", rememberColumnTitle);
+  document.querySelector("thead")?.addEventListener("focusout", saveEditedColumnTitle);
+  document.querySelector("thead")?.addEventListener("keydown", handleColumnTitleKeydown);
   document.querySelector("thead")?.addEventListener("click", changeColumnSort);
 }
 
@@ -154,12 +162,15 @@ function applyCurrentSort(model) {
 }
 
 function changeColumnSort(event) {
-  const button = event.target.closest?.(".column-sort");
-  if (!button) {
+  if (event.target.closest?.(".column-label, .column-resizer")) {
+    return;
+  }
+  const headerCell = event.target.closest?.("th[data-column-index]");
+  if (!headerCell) {
     return;
   }
   const model = window.baseModel;
-  const column = model?.columns[Number(button.dataset.columnIndex)];
+  const column = model?.columns[Number(headerCell.dataset.columnIndex)];
   if (!column) {
     return;
   }
@@ -172,6 +183,77 @@ function changeColumnSort(event) {
     currentSort = null;
   }
   renderModel(model, currentBaseName);
+}
+
+function rememberColumnTitle(event) {
+  const title = event.target.closest?.(".column-label[contenteditable='true']");
+  if (title) {
+    title.dataset.originalValue = title.textContent;
+  }
+}
+
+function handleColumnTitleKeydown(event) {
+  const title = event.target.closest?.(".column-label[contenteditable='true']");
+  if (!title) {
+    return;
+  }
+  if (event.key === "Enter") {
+    event.preventDefault();
+    title.blur();
+  } else if (event.key === "Escape") {
+    event.preventDefault();
+    title.textContent = title.dataset.originalValue ?? "";
+    title.blur();
+  }
+}
+
+async function saveEditedColumnTitle(event) {
+  const title = event.target.closest?.(".column-label[contenteditable='true']");
+  if (!title) {
+    return;
+  }
+  const originalLabel = title.dataset.originalValue ?? "";
+  const nextProperty = title.textContent.trim();
+  if (nextProperty === originalLabel) {
+    return;
+  }
+  if (!nextProperty) {
+    title.textContent = originalLabel;
+    return;
+  }
+
+  const model = window.baseModel;
+  const column = model?.columns[Number(title.dataset.columnIndex)];
+  if (!column || !currentBaseConfig || !currentBasePath) {
+    title.textContent = originalLabel;
+    return;
+  }
+
+  try {
+    setStatus("Renaming...");
+    const paths = [...new Set(model.rows.map((row) => row.file.file.path))];
+    const markdownUpdates = [];
+    for (const path of paths) {
+      const markdown = await readFileText(path);
+      markdownUpdates.push({
+        path,
+        markdown: renameMarkdownFrontmatterProperty(markdown, column.property, nextProperty),
+      });
+    }
+    const nextBaseConfig = renameBaseProperty(currentBaseConfig, column.property, nextProperty);
+    await writeFileText(currentBasePath, serializeYaml(nextBaseConfig));
+    for (const update of markdownUpdates) {
+      await writeFileText(update.path, update.markdown);
+    }
+    currentBaseConfig = nextBaseConfig;
+    currentSort = null;
+    const rows = await loadMarkdownRows();
+    renderModel(buildTableModel(currentBaseConfig, rows), currentBaseName);
+  } catch (error) {
+    title.textContent = originalLabel;
+    setStatus("Rename failed");
+    console.error(error);
+  }
 }
 
 async function addEntry() {
@@ -423,7 +505,17 @@ async function saveEditedCell(event) {
   try {
     setStatus("Saving...");
     const markdown = await readFileText(path);
-    await writeFileText(path, updateMarkdownFrontmatterValue(markdown, column.property, cell.textContent));
+    const updatedMarkdown = updateMarkdownFrontmatterValue(markdown, column.property, cell.textContent);
+    const nextPath = isPageTitleProperty(column.property) ? renamedPagePath(path, cell.textContent) : path;
+    if (nextPath !== path) {
+      if (await fileExists(nextPath)) {
+        throw new Error("A page with that filename already exists.");
+      }
+      await writeFileText(nextPath, updatedMarkdown);
+      await deleteFile(path);
+    } else {
+      await writeFileText(path, updatedMarkdown);
+    }
     const rows = await loadMarkdownRows();
     renderModel(buildTableModel(currentBaseConfig, rows), currentBaseName);
   } catch (error) {
@@ -431,6 +523,10 @@ async function saveEditedCell(event) {
     setStatus("Save failed");
     console.error(error);
   }
+}
+
+function isPageTitleProperty(property) {
+  return property === "title" || property === "note.title";
 }
 
 function setStatus(text) {

@@ -90,6 +90,7 @@ export async function editor() {
     }
     .column-header {
       align-items: center;
+      cursor: pointer;
       display: flex;
       gap: 8px;
       min-height: 20px;
@@ -97,25 +98,16 @@ export async function editor() {
     .column-label {
       flex: 1 1 auto;
       min-width: 0;
-    }
-    .column-sort {
-      align-items: center;
-      background: transparent;
-      border: 0;
-      color: inherit;
-      display: flex;
-      flex: 1 1 auto;
-      font: inherit;
-      font-weight: inherit;
-      gap: 3px;
-      min-width: 0;
-      padding: 0;
-      text-align: left;
-    }
-    .column-sort:hover,
-    .column-sort:focus-visible {
-      color: light-dark(#1d4ed8, #93c5fd);
       outline: 0;
+    }
+    .column-label[contenteditable="true"] {
+      cursor: text;
+    }
+    .column-label[contenteditable="true"]:hover,
+    .column-label[contenteditable="true"]:focus {
+      color: inherit;
+      background: light-dark(#eef6ff, #102a43);
+      box-shadow: 0 0 0 2px light-dark(#2563eb, #7dd3fc);
     }
     .sort-indicator {
       flex: 0 0 auto;
