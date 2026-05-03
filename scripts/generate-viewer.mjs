@@ -14,6 +14,7 @@ let currentBaseConfig = null;
 let currentBaseName = "Base";
 let currentBasePath = "";
 let activeColumnResize = null;
+let currentSort = null;
 
 function escapeHtml(value) {
   return String(value).replace(/[&<>"']/g, (char) => ({
@@ -68,26 +69,32 @@ async function loadMarkdownRows() {
 }
 
 function renderModel(model, baseName) {
+  const displayModel = applyCurrentSort(model);
   const warningHtml = model.warnings.length
     ? '<div class="warnings">' + model.warnings.map(escapeHtml).join("<br>") + "</div>"
     : "";
   const storedWidths = readStoredColumnWidths(baseName);
-  const columnWidths = model.columns.map((column) => {
+  const columnWidths = displayModel.columns.map((column) => {
     return clampColumnWidth(storedWidths[column.property] ?? column.width ?? DEFAULT_COLUMN_WIDTH);
   });
   const colgroupHtml = columnWidths.map((width, columnIndex) => {
     return '<col data-column-index="' + columnIndex + '" style="width: ' + width + 'px">';
   }).join("");
-  const headerHtml = model.columns.map((column, columnIndex) => {
+  const headerHtml = displayModel.columns.map((column, columnIndex) => {
     const label = escapeHtml(column.label);
-    return '<th data-column-index="' + columnIndex + '">' +
-      '<div class="column-header"><span class="column-label">' + label + '</span>' +
+    const direction = currentSort?.property === column.property ? currentSort.direction : null;
+    const sortText = direction === "ascending" ? " &uarr;" : direction === "descending" ? " &darr;" : "";
+    const ariaSort = direction ?? "none";
+    return '<th data-column-index="' + columnIndex + '" aria-sort="' + ariaSort + '">' +
+      '<div class="column-header"><button class="column-sort" type="button" data-column-index="' + columnIndex +
+      '" title="Sort by ' + label + '">' +
+      '<span class="column-label">' + label + '</span><span class="sort-indicator" aria-hidden="true">' + sortText + '</span></button>' +
       '<button class="column-resizer" type="button" data-column-index="' + columnIndex +
       '" aria-label="Resize ' + label + ' column" title="Resize column"></button></div></th>';
   }).join("");
-  const rowHtml = model.rows.map((row, rowIndex) => (
+  const rowHtml = displayModel.rows.map((row, rowIndex) => (
     '<tr>' + row.cells.map((cell, columnIndex) => {
-      const column = model.columns[columnIndex];
+      const column = displayModel.columns[columnIndex];
       if (column.property === "file.name") {
         return '<td><a class="page-link" href="#" data-page-path="' + escapeHtml(row.file.file.path) +
           '">' + escapeHtml(cell) + '</a></td>';
@@ -115,7 +122,45 @@ function renderModel(model, baseName) {
   document.querySelector("tbody")?.addEventListener("click", openLinkedPage);
   document.querySelector("thead")?.addEventListener("pointerdown", beginColumnResize);
   document.querySelector("thead")?.addEventListener("keydown", handleColumnResizeKeydown);
-  window.currentModel = model;
+  document.querySelector("thead")?.addEventListener("click", changeColumnSort);
+  window.currentModel = displayModel;
+  window.baseModel = model;
+}
+
+function applyCurrentSort(model) {
+  if (!currentSort) {
+    return model;
+  }
+  const columnIndex = model.columns.findIndex((column) => column.property === currentSort.property);
+  if (columnIndex === -1) {
+    currentSort = null;
+    return model;
+  }
+  return {
+    ...model,
+    rows: sortTableRows(model.rows, columnIndex, currentSort.direction),
+  };
+}
+
+function changeColumnSort(event) {
+  const button = event.target.closest?.(".column-sort");
+  if (!button) {
+    return;
+  }
+  const model = window.baseModel;
+  const column = model?.columns[Number(button.dataset.columnIndex)];
+  if (!column) {
+    return;
+  }
+
+  if (currentSort?.property !== column.property) {
+    currentSort = { property: column.property, direction: "ascending" };
+  } else if (currentSort.direction === "ascending") {
+    currentSort = { property: column.property, direction: "descending" };
+  } else {
+    currentSort = null;
+  }
+  renderModel(model, currentBaseName);
 }
 
 async function addEntry() {
@@ -364,6 +409,7 @@ async function openBase(event) {
     currentBaseConfig = baseConfig;
     currentBaseName = meta.name ?? "Base";
     currentBasePath = meta.name ?? meta.path ?? "";
+    currentSort = null;
     const rows = await loadMarkdownRows();
     renderModel(buildTableModel(baseConfig, rows), currentBaseName);
   } catch (error) {

@@ -8,6 +8,7 @@ import {
   makeRowFromFile,
   parseMarkdownFrontmatter,
   parseYaml,
+  sortTableRows,
   updateMarkdownFrontmatterValue,
 } from "../src/core.mjs";
 
@@ -123,6 +124,38 @@ test("builds rows matching generated music folder and extension filters", () => 
     "piano, vocals",
   );
   assert.deepEqual(model.warnings, []);
+});
+
+test("sorts table rows by typed column values in both directions", () => {
+  const rows = Object.entries(musicNotes).map(([path, markdown]) => {
+    return makeRowFromFile({ name: path }, markdown);
+  });
+  const model = buildTableModel(parseYaml(musicBase), rows);
+  const yearIndex = model.columns.findIndex((column) => column.property === "release year");
+
+  assert.deepEqual(sortTableRows(model.rows, yearIndex, "ascending").map((row) => row.cells[0]), [
+    "nina-simone",
+    "fela-kuti",
+    "bjork",
+  ]);
+  assert.deepEqual(sortTableRows(model.rows, yearIndex, "descending").map((row) => row.cells[0]), [
+    "bjork",
+    "fela-kuti",
+    "nina-simone",
+  ]);
+});
+
+test("leaves table rows in their existing order when sort direction is inactive", () => {
+  const rows = Object.entries(musicNotes).map(([path, markdown]) => {
+    return makeRowFromFile({ name: path }, markdown);
+  });
+  const model = buildTableModel(parseYaml(musicBase), rows);
+
+  assert.deepEqual(sortTableRows(model.rows, 0, null).map((row) => row.cells[0]), [
+    "nina-simone",
+    "fela-kuti",
+    "bjork",
+  ]);
 });
 
 test("unsupported filters fail closed with a warning", () => {

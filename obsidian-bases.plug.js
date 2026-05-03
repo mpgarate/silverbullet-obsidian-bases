@@ -1,4 +1,4 @@
-function F(n){let e=atob(n),i=e.length,t=new Uint8Array(i);for(let r=0;r<i;r++)t[r]=e.charCodeAt(r);return t}function g(n){typeof n=="string"&&(n=new TextEncoder().encode(n));let e="",i=n.byteLength;for(let t=0;t<i;t++)e+=String.fromCharCode(n[t]);return btoa(e)}var V=new Uint8Array(16),M=class{constructor(n="",e=1e3){this.prefix=n,this.maxCaptureSize=e,this.prefix=n,this.originalConsole={log:console.log.bind(console),info:console.info.bind(console),warn:console.warn.bind(console),error:console.error.bind(console),debug:console.debug.bind(console)},this.patchConsole()}originalConsole;logBuffer=[];patchConsole(){let n=e=>(...i)=>{let t=this.prefix?[this.prefix,...i]:i;this.originalConsole[e](...t),this.captureLog(e,i)};console.log=n("log"),console.info=n("info"),console.warn=n("warn"),console.error=n("error"),console.debug=n("debug")}captureLog(n,e){let i={level:n,timestamp:Date.now(),message:e.map(t=>{if(typeof t=="string")return t;try{return JSON.stringify(t)}catch{return String(t)}}).join(" ")};this.logBuffer.push(i),this.logBuffer.length>this.maxCaptureSize&&this.logBuffer.shift()}async postToServer(n,e){if(this.logBuffer.length>0){let t=[...this.logBuffer];this.logBuffer=[];try{if(!(await fetch(n,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(t.map(a=>({...a,source:e})))})).ok)throw new Error("Failed to post logs to server")}catch(r){console.warn("Could not post logs to server",r.message),this.logBuffer.unshift(...t)}}}},y;function B(n=""){return y=new M(n),y}var s=n=>{throw new Error("Not initialized yet")},m=typeof window>"u"&&typeof globalThis.WebSocketPair>"u",f=new Map,d=0;m&&(globalThis.syscall=async(n,...e)=>await new Promise((i,t)=>{d++,f.set(d,{resolve:i,reject:t}),s({type:"sys",id:d,name:n,args:e})}));function w(n,e,i){m&&(s=i,self.addEventListener("message",t=>{(async()=>{let r=t.data;switch(r.type){case"inv":{let a=n[r.name];if(!a)throw new Error(`Function not loaded: ${r.name}`);try{let o=await Promise.resolve(a(...r.args||[]));s({type:"invr",id:r.id,result:o})}catch(o){console.error("An exception was thrown as a result of invoking function",r.name,"error:",o.message),s({type:"invr",id:r.id,error:o.message})}}break;case"sysr":{let a=r.id,o=f.get(a);if(!o)throw Error("Invalid request id");f.delete(a),r.error?o.reject(new Error(r.error)):o.resolve(r.result)}break}})().catch(console.error)}),s({type:"manifest",manifest:e}),B(`[${e.name} plug]`))}async function T(n,e){if(typeof n!="string"){let i=new Uint8Array(await n.arrayBuffer()),t=i.length>0?g(i):void 0;e={method:n.method,headers:Object.fromEntries(n.headers.entries()),base64Body:t},n=n.url}return syscall("sandboxFetch.fetch",n,e)}globalThis.nativeFetch=globalThis.fetch;function N(){globalThis.fetch=async(n,e)=>{let i=e?.body?g(new Uint8Array(await new Response(e.body).arrayBuffer())):void 0,t=await T(n,e&&{method:e.method,headers:e.headers,base64Body:i});return new Response(t.base64Body?F(t.base64Body):null,{status:t.status,headers:t.headers})}}m&&N();var b=`function parseYaml(text) {
+function W(n){let e=atob(n),i=e.length,t=new Uint8Array(i);for(let r=0;r<i;r++)t[r]=e.charCodeAt(r);return t}function g(n){typeof n=="string"&&(n=new TextEncoder().encode(n));let e="",i=n.byteLength;for(let t=0;t<i;t++)e+=String.fromCharCode(n[t]);return btoa(e)}var P=new Uint8Array(16),F=class{constructor(n="",e=1e3){this.prefix=n,this.maxCaptureSize=e,this.prefix=n,this.originalConsole={log:console.log.bind(console),info:console.info.bind(console),warn:console.warn.bind(console),error:console.error.bind(console),debug:console.debug.bind(console)},this.patchConsole()}originalConsole;logBuffer=[];patchConsole(){let n=e=>(...i)=>{let t=this.prefix?[this.prefix,...i]:i;this.originalConsole[e](...t),this.captureLog(e,i)};console.log=n("log"),console.info=n("info"),console.warn=n("warn"),console.error=n("error"),console.debug=n("debug")}captureLog(n,e){let i={level:n,timestamp:Date.now(),message:e.map(t=>{if(typeof t=="string")return t;try{return JSON.stringify(t)}catch{return String(t)}}).join(" ")};this.logBuffer.push(i),this.logBuffer.length>this.maxCaptureSize&&this.logBuffer.shift()}async postToServer(n,e){if(this.logBuffer.length>0){let t=[...this.logBuffer];this.logBuffer=[];try{if(!(await fetch(n,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(t.map(a=>({...a,source:e})))})).ok)throw new Error("Failed to post logs to server")}catch(r){console.warn("Could not post logs to server",r.message),this.logBuffer.unshift(...t)}}}},y;function N(n=""){return y=new F(n),y}var s=n=>{throw new Error("Not initialized yet")},f=typeof window>"u"&&typeof globalThis.WebSocketPair>"u",m=new Map,d=0;f&&(globalThis.syscall=async(n,...e)=>await new Promise((i,t)=>{d++,m.set(d,{resolve:i,reject:t}),s({type:"sys",id:d,name:n,args:e})}));function b(n,e,i){f&&(s=i,self.addEventListener("message",t=>{(async()=>{let r=t.data;switch(r.type){case"inv":{let a=n[r.name];if(!a)throw new Error(`Function not loaded: ${r.name}`);try{let o=await Promise.resolve(a(...r.args||[]));s({type:"invr",id:r.id,result:o})}catch(o){console.error("An exception was thrown as a result of invoking function",r.name,"error:",o.message),s({type:"invr",id:r.id,error:o.message})}}break;case"sysr":{let a=r.id,o=m.get(a);if(!o)throw Error("Invalid request id");m.delete(a),r.error?o.reject(new Error(r.error)):o.resolve(r.result)}break}})().catch(console.error)}),s({type:"manifest",manifest:e}),N(`[${e.name} plug]`))}async function B(n,e){if(typeof n!="string"){let i=new Uint8Array(await n.arrayBuffer()),t=i.length>0?g(i):void 0;e={method:n.method,headers:Object.fromEntries(n.headers.entries()),base64Body:t},n=n.url}return syscall("sandboxFetch.fetch",n,e)}globalThis.nativeFetch=globalThis.fetch;function T(){globalThis.fetch=async(n,e)=>{let i=e?.body?g(new Uint8Array(await new Response(e.body).arrayBuffer())):void 0,t=await B(n,e&&{method:e.method,headers:e.headers,base64Body:i});return new Response(t.base64Body?W(t.base64Body):null,{status:t.status,headers:t.headers})}}f&&T();var w=`function parseYaml(text) {
   const lines = text.replace(/\\r\\n?/g, "\\n").split("\\n")
     .map((raw) => ({ raw, indent: raw.match(/^ */)[0].length, text: raw.trim() }))
     .filter((line) => line.text !== "" && !line.text.startsWith("#"));
@@ -58,10 +58,28 @@ function buildTableModel(baseConfig, files) {
     .filter((file) => evaluateFilter(combinedFilter, file, warnings))
     .map((file) => ({
       file,
+      values: columns.map((column) => resolveProperty(file, column.property)),
       cells: columns.map((column) => formatValue(resolveProperty(file, column.property))),
     }));
 
   return { columns, rows, warnings: unique(warnings) };
+}
+
+function sortTableRows(rows, columnIndex, direction) {
+  if (direction !== "ascending" && direction !== "descending") {
+    return [...rows];
+  }
+  const multiplier = direction === "ascending" ? 1 : -1;
+  return rows
+    .map((row, index) => ({ row, index }))
+    .sort((left, right) => {
+      const comparison = compareSortValues(
+        sortValueForRow(left.row, columnIndex),
+        sortValueForRow(right.row, columnIndex),
+      );
+      return comparison === 0 ? left.index - right.index : comparison * multiplier;
+    })
+    .map((item) => item.row);
 }
 
 function updateMarkdownFrontmatterValue(markdown, property, textValue) {
@@ -439,6 +457,49 @@ function formatValue(value) {
   return String(value);
 }
 
+function sortValueForRow(row, columnIndex) {
+  if (Array.isArray(row.values)) {
+    return row.values[columnIndex];
+  }
+  return row.cells?.[columnIndex];
+}
+
+function compareSortValues(left, right) {
+  const leftMissing = left == null || left === "";
+  const rightMissing = right == null || right === "";
+  if (leftMissing || rightMissing) {
+    return leftMissing === rightMissing ? 0 : leftMissing ? 1 : -1;
+  }
+
+  if (Array.isArray(left)) {
+    left = left.filter((item) => item != null && item !== "").join(", ");
+  }
+  if (Array.isArray(right)) {
+    right = right.filter((item) => item != null && item !== "").join(", ");
+  }
+
+  const leftNumber = sortableNumber(left);
+  const rightNumber = sortableNumber(right);
+  if (leftNumber != null && rightNumber != null) {
+    return leftNumber === rightNumber ? 0 : leftNumber < rightNumber ? -1 : 1;
+  }
+
+  return String(left).localeCompare(String(right), undefined, {
+    numeric: true,
+    sensitivity: "base",
+  });
+}
+
+function sortableNumber(value) {
+  if (typeof value === "number" && Number.isFinite(value)) {
+    return value;
+  }
+  if (typeof value === "string" && /^-?\\d+(\\.\\d+)?$/.test(value.trim())) {
+    return Number(value);
+  }
+  return null;
+}
+
 function normalizePath(path) {
   return path.replace(/^\\/+/, "").replace(/\\\\/g, "/");
 }
@@ -483,6 +544,7 @@ let currentBaseConfig = null;
 let currentBaseName = "Base";
 let currentBasePath = "";
 let activeColumnResize = null;
+let currentSort = null;
 
 function escapeHtml(value) {
   return String(value).replace(/[&<>"']/g, (char) => ({
@@ -537,26 +599,32 @@ async function loadMarkdownRows() {
 }
 
 function renderModel(model, baseName) {
+  const displayModel = applyCurrentSort(model);
   const warningHtml = model.warnings.length
     ? '<div class="warnings">' + model.warnings.map(escapeHtml).join("<br>") + "</div>"
     : "";
   const storedWidths = readStoredColumnWidths(baseName);
-  const columnWidths = model.columns.map((column) => {
+  const columnWidths = displayModel.columns.map((column) => {
     return clampColumnWidth(storedWidths[column.property] ?? column.width ?? DEFAULT_COLUMN_WIDTH);
   });
   const colgroupHtml = columnWidths.map((width, columnIndex) => {
     return '<col data-column-index="' + columnIndex + '" style="width: ' + width + 'px">';
   }).join("");
-  const headerHtml = model.columns.map((column, columnIndex) => {
+  const headerHtml = displayModel.columns.map((column, columnIndex) => {
     const label = escapeHtml(column.label);
-    return '<th data-column-index="' + columnIndex + '">' +
-      '<div class="column-header"><span class="column-label">' + label + '</span>' +
+    const direction = currentSort?.property === column.property ? currentSort.direction : null;
+    const sortText = direction === "ascending" ? " &uarr;" : direction === "descending" ? " &darr;" : "";
+    const ariaSort = direction ?? "none";
+    return '<th data-column-index="' + columnIndex + '" aria-sort="' + ariaSort + '">' +
+      '<div class="column-header"><button class="column-sort" type="button" data-column-index="' + columnIndex +
+      '" title="Sort by ' + label + '">' +
+      '<span class="column-label">' + label + '</span><span class="sort-indicator" aria-hidden="true">' + sortText + '</span></button>' +
       '<button class="column-resizer" type="button" data-column-index="' + columnIndex +
       '" aria-label="Resize ' + label + ' column" title="Resize column"></button></div></th>';
   }).join("");
-  const rowHtml = model.rows.map((row, rowIndex) => (
+  const rowHtml = displayModel.rows.map((row, rowIndex) => (
     '<tr>' + row.cells.map((cell, columnIndex) => {
-      const column = model.columns[columnIndex];
+      const column = displayModel.columns[columnIndex];
       if (column.property === "file.name") {
         return '<td><a class="page-link" href="#" data-page-path="' + escapeHtml(row.file.file.path) +
           '">' + escapeHtml(cell) + '</a></td>';
@@ -584,7 +652,45 @@ function renderModel(model, baseName) {
   document.querySelector("tbody")?.addEventListener("click", openLinkedPage);
   document.querySelector("thead")?.addEventListener("pointerdown", beginColumnResize);
   document.querySelector("thead")?.addEventListener("keydown", handleColumnResizeKeydown);
-  window.currentModel = model;
+  document.querySelector("thead")?.addEventListener("click", changeColumnSort);
+  window.currentModel = displayModel;
+  window.baseModel = model;
+}
+
+function applyCurrentSort(model) {
+  if (!currentSort) {
+    return model;
+  }
+  const columnIndex = model.columns.findIndex((column) => column.property === currentSort.property);
+  if (columnIndex === -1) {
+    currentSort = null;
+    return model;
+  }
+  return {
+    ...model,
+    rows: sortTableRows(model.rows, columnIndex, currentSort.direction),
+  };
+}
+
+function changeColumnSort(event) {
+  const button = event.target.closest?.(".column-sort");
+  if (!button) {
+    return;
+  }
+  const model = window.baseModel;
+  const column = model?.columns[Number(button.dataset.columnIndex)];
+  if (!column) {
+    return;
+  }
+
+  if (currentSort?.property !== column.property) {
+    currentSort = { property: column.property, direction: "ascending" };
+  } else if (currentSort.direction === "ascending") {
+    currentSort = { property: column.property, direction: "descending" };
+  } else {
+    currentSort = null;
+  }
+  renderModel(model, currentBaseName);
 }
 
 async function addEntry() {
@@ -833,6 +939,7 @@ async function openBase(event) {
     currentBaseConfig = baseConfig;
     currentBaseName = meta.name ?? "Base";
     currentBasePath = meta.name ?? meta.path ?? "";
+    currentSort = null;
     const rows = await loadMarkdownRows();
     renderModel(buildTableModel(baseConfig, rows), currentBaseName);
   } catch (error) {
@@ -940,6 +1047,31 @@ window.silverbullet?.addEventLister?.("file-open", openBase);
       flex: 1 1 auto;
       min-width: 0;
     }
+    .column-sort {
+      align-items: center;
+      background: transparent;
+      border: 0;
+      color: inherit;
+      display: flex;
+      flex: 1 1 auto;
+      font: inherit;
+      font-weight: inherit;
+      gap: 3px;
+      min-width: 0;
+      padding: 0;
+      text-align: left;
+    }
+    .column-sort:hover,
+    .column-sort:focus-visible {
+      color: light-dark(#1d4ed8, #93c5fd);
+      outline: 0;
+    }
+    .sort-indicator {
+      flex: 0 0 auto;
+      font-size: 12px;
+      line-height: 1;
+      min-width: 10px;
+    }
     .column-resizer {
       align-self: stretch;
       background: transparent;
@@ -1005,10 +1137,10 @@ window.silverbullet?.addEventLister?.("file-open", openBase);
 </head>
 <body>
   <main>Loading base...</main>
-  <script>${b}<\/script>
+  <script>${w}<\/script>
 </body>
 </html>`}}function $(n){let e=n.replace(/\r\n?/g,`
 `).split(`
-`).map(t=>({raw:t,indent:t.match(/^ */)[0].length,text:t.trim()})).filter(t=>t.text!==""&&!t.text.startsWith("#")),[i]=c(e,0,0);return i??{}}function v(n,e){let t=["Obsidian Base",R(n).split("/").pop()?.replace(/\.base$/i,"")??""];try{let r=$(e);p(r,t)}catch{}return t.push(e),O(t.flatMap(j)).filter(Boolean).join(`
-`)}function c(n,e,i){return e>=n.length||n[e].indent<i?[null,e]:n[e].text.startsWith("- ")?L(n,e,n[e].indent):k(n,e,n[e].indent)}function L(n,e,i){let t=[],r=e;for(;r<n.length&&n[r].indent===i&&n[r].text.startsWith("- ");){let a=n[r].text.slice(2).trim();if(a===""){let[o,l]=c(n,r+1,i+2);t.push(o),r=l}else if(A(a)){let o={};for(I(o,a,n,r,i+2),r++;r<n.length&&n[r].indent>=i+2&&(n[r].indent===i+2&&!n[r].text.startsWith("- "));){let[l,u]=k(n,r,i+2);Object.assign(o,l),r=u}t.push(o)}else t.push(h(a)),r++}return[t,r]}function k(n,e,i){let t={},r=e;for(;r<n.length&&n[r].indent===i&&!n[r].text.startsWith("- ");){let a=n[r].text,[o,l]=C(a);if(l==="")if(r+1<n.length&&n[r+1].indent>i){let[u,z]=c(n,r+1,n[r+1].indent);t[o]=u,r=z}else t[o]=null,r++;else t[o]=h(l),r++}return[t,r]}function I(n,e,i,t,r){let[a,o]=C(e);if(o===""&&t+1<i.length&&i[t+1].indent>=r){let[l]=c(i,t+1,r);n[a]=l}else o===""?n[a]=null:n[a]=h(o)}function A(n){return/^[^"'][^:]+:/.test(n)}function C(n){let e=n.indexOf(":");if(e===-1)throw new Error(`Invalid YAML mapping line: ${n}`);return[n.slice(0,e).trim(),n.slice(e+1).trim()]}function h(n){return n===""||n==="~"||n==="null"?null:n==="[]"?[]:n==="true"?!0:n==="false"?!1:n.startsWith('"')&&n.endsWith('"')||n.startsWith("'")&&n.endsWith("'")?n.slice(1,-1):/^-?\d+(\.\d+)?$/.test(n)?Number(n):n}function R(n){return n.replace(/^\/+/,"").replace(/\\/g,"/")}function O(n){return[...new Set(n)]}function p(n,e){if(n!=null){if(Array.isArray(n)){for(let i of n)p(i,e);return}if(typeof n=="object"){for(let[i,t]of Object.entries(n))e.push(i),p(t,e);return}e.push(String(n))}}function j(n){return String(n).split(/\r?\n/).map(e=>e.trim())}var P=new TextDecoder;async function S(n){let e=n?.meta??{},i=e.name??e.path??"";if(!i.toLowerCase().endsWith(".base"))return null;let t=await syscall("space.readFile",i),r=typeof t=="string"?t:P.decode(t);return{content:v(i,r),cacheMode:"session"}}var E={editor:x,indexBaseDocument:S},W={name:"obsidian-bases",functions:{editor:{path:"./src/editor.js:editor",editor:["base"]},indexBaseDocument:{path:"./src/silversearch.js:indexBaseDocument",events:["silversearch:index"]}},assets:{}},Z={manifest:W,functionMapping:E};w(E,W,self.postMessage);export{Z as plug};
+`).map(t=>({raw:t,indent:t.match(/^ */)[0].length,text:t.trim()})).filter(t=>t.text!==""&&!t.text.startsWith("#")),[i]=c(e,0,0);return i??{}}function v(n,e){let t=["Obsidian Base",R(n).split("/").pop()?.replace(/\.base$/i,"")??""];try{let r=$(e);p(r,t)}catch{}return t.push(e),V(t.flatMap(j)).filter(Boolean).join(`
+`)}function c(n,e,i){return e>=n.length||n[e].indent<i?[null,e]:n[e].text.startsWith("- ")?L(n,e,n[e].indent):S(n,e,n[e].indent)}function L(n,e,i){let t=[],r=e;for(;r<n.length&&n[r].indent===i&&n[r].text.startsWith("- ");){let a=n[r].text.slice(2).trim();if(a===""){let[o,l]=c(n,r+1,i+2);t.push(o),r=l}else if(A(a)){let o={};for(I(o,a,n,r,i+2),r++;r<n.length&&n[r].indent>=i+2&&(n[r].indent===i+2&&!n[r].text.startsWith("- "));){let[l,u]=S(n,r,i+2);Object.assign(o,l),r=u}t.push(o)}else t.push(h(a)),r++}return[t,r]}function S(n,e,i){let t={},r=e;for(;r<n.length&&n[r].indent===i&&!n[r].text.startsWith("- ");){let a=n[r].text,[o,l]=C(a);if(l==="")if(r+1<n.length&&n[r+1].indent>i){let[u,z]=c(n,r+1,n[r+1].indent);t[o]=u,r=z}else t[o]=null,r++;else t[o]=h(l),r++}return[t,r]}function I(n,e,i,t,r){let[a,o]=C(e);if(o===""&&t+1<i.length&&i[t+1].indent>=r){let[l]=c(i,t+1,r);n[a]=l}else o===""?n[a]=null:n[a]=h(o)}function A(n){return/^[^"'][^:]+:/.test(n)}function C(n){let e=n.indexOf(":");if(e===-1)throw new Error(`Invalid YAML mapping line: ${n}`);return[n.slice(0,e).trim(),n.slice(e+1).trim()]}function h(n){return n===""||n==="~"||n==="null"?null:n==="[]"?[]:n==="true"?!0:n==="false"?!1:n.startsWith('"')&&n.endsWith('"')||n.startsWith("'")&&n.endsWith("'")?n.slice(1,-1):/^-?\d+(\.\d+)?$/.test(n)?Number(n):n}function R(n){return n.replace(/^\/+/,"").replace(/\\/g,"/")}function V(n){return[...new Set(n)]}function p(n,e){if(n!=null){if(Array.isArray(n)){for(let i of n)p(i,e);return}if(typeof n=="object"){for(let[i,t]of Object.entries(n))e.push(i),p(t,e);return}e.push(String(n))}}function j(n){return String(n).split(/\r?\n/).map(e=>e.trim())}var O=new TextDecoder;async function k(n){let e=n?.meta??{},i=e.name??e.path??"";if(!i.toLowerCase().endsWith(".base"))return null;let t=await syscall("space.readFile",i),r=typeof t=="string"?t:O.decode(t);return{content:v(i,r),cacheMode:"session"}}var M={editor:x,indexBaseDocument:k},E={name:"obsidian-bases",functions:{editor:{path:"./src/editor.js:editor",editor:["base"]},indexBaseDocument:{path:"./src/silversearch.js:indexBaseDocument",events:["silversearch:index"]}},assets:{}},Z={manifest:E,functionMapping:M};b(M,E,self.postMessage);export{Z as plug};
 //# sourceMappingURL=obsidian-bases.plug.js.map

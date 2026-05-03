@@ -58,10 +58,28 @@ export function buildTableModel(baseConfig, files) {
     .filter((file) => evaluateFilter(combinedFilter, file, warnings))
     .map((file) => ({
       file,
+      values: columns.map((column) => resolveProperty(file, column.property)),
       cells: columns.map((column) => formatValue(resolveProperty(file, column.property))),
     }));
 
   return { columns, rows, warnings: unique(warnings) };
+}
+
+export function sortTableRows(rows, columnIndex, direction) {
+  if (direction !== "ascending" && direction !== "descending") {
+    return [...rows];
+  }
+  const multiplier = direction === "ascending" ? 1 : -1;
+  return rows
+    .map((row, index) => ({ row, index }))
+    .sort((left, right) => {
+      const comparison = compareSortValues(
+        sortValueForRow(left.row, columnIndex),
+        sortValueForRow(right.row, columnIndex),
+      );
+      return comparison === 0 ? left.index - right.index : comparison * multiplier;
+    })
+    .map((item) => item.row);
 }
 
 export function updateMarkdownFrontmatterValue(markdown, property, textValue) {
@@ -437,6 +455,49 @@ function formatValue(value) {
     return value.filter((item) => item != null && item !== "").join(", ");
   }
   return String(value);
+}
+
+function sortValueForRow(row, columnIndex) {
+  if (Array.isArray(row.values)) {
+    return row.values[columnIndex];
+  }
+  return row.cells?.[columnIndex];
+}
+
+function compareSortValues(left, right) {
+  const leftMissing = left == null || left === "";
+  const rightMissing = right == null || right === "";
+  if (leftMissing || rightMissing) {
+    return leftMissing === rightMissing ? 0 : leftMissing ? 1 : -1;
+  }
+
+  if (Array.isArray(left)) {
+    left = left.filter((item) => item != null && item !== "").join(", ");
+  }
+  if (Array.isArray(right)) {
+    right = right.filter((item) => item != null && item !== "").join(", ");
+  }
+
+  const leftNumber = sortableNumber(left);
+  const rightNumber = sortableNumber(right);
+  if (leftNumber != null && rightNumber != null) {
+    return leftNumber === rightNumber ? 0 : leftNumber < rightNumber ? -1 : 1;
+  }
+
+  return String(left).localeCompare(String(right), undefined, {
+    numeric: true,
+    sensitivity: "base",
+  });
+}
+
+function sortableNumber(value) {
+  if (typeof value === "number" && Number.isFinite(value)) {
+    return value;
+  }
+  if (typeof value === "string" && /^-?\d+(\.\d+)?$/.test(value.trim())) {
+    return Number(value);
+  }
+  return null;
 }
 
 function normalizePath(path) {

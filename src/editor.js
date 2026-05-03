@@ -99,6 +99,31 @@ export async function editor() {
       flex: 1 1 auto;
       min-width: 0;
     }
+    .column-sort {
+      align-items: center;
+      background: transparent;
+      border: 0;
+      color: inherit;
+      display: flex;
+      flex: 1 1 auto;
+      font: inherit;
+      font-weight: inherit;
+      gap: 3px;
+      min-width: 0;
+      padding: 0;
+      text-align: left;
+    }
+    .column-sort:hover,
+    .column-sort:focus-visible {
+      color: light-dark(#1d4ed8, #93c5fd);
+      outline: 0;
+    }
+    .sort-indicator {
+      flex: 0 0 auto;
+      font-size: 12px;
+      line-height: 1;
+      min-width: 10px;
+    }
     .column-resizer {
       align-self: stretch;
       background: transparent;
