@@ -1,9 +1,19 @@
 import { mkdir, readFile, writeFile } from "node:fs/promises";
 
-const coreSource = await readFile(new URL("../src/core.mjs", import.meta.url), "utf8");
-const browserCore = coreSource.replace(/^export /gm, "");
+const jsYamlBundle = await readFile(
+  new URL("../node_modules/js-yaml/dist/js-yaml.min.js", import.meta.url),
+  "utf8",
+);
 
-const viewerSource = `${browserCore}
+const coreSource = await readFile(new URL("../src/core.mjs", import.meta.url), "utf8");
+const browserCore = coreSource
+  .replace(/^import .* from "js-yaml";\s*\n/m, "")
+  .replace(/\byamlLoad\b/g, "jsyaml.load")
+  .replace(/\byamlDump\b/g, "jsyaml.dump")
+  .replace(/^export /gm, "");
+
+const viewerSource = `${jsYamlBundle}
+${browserCore}
 
 const decoder = new TextDecoder();
 const encoder = new TextEncoder();

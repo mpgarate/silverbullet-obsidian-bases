@@ -52,14 +52,8 @@ npm test
 
 ## Limitations
 
-This plug ships a small hand-rolled YAML parser scoped to the syntax used in `.base` files and Markdown frontmatter. It supports scalar values, sequences, nested mappings, and quoted strings, but does not handle full YAML 1.2 (anchors, multi-line strings, flow-style collections, etc.). Filter expressions are limited to the operators listed above; functions like `file.hasTag(...)` are not supported and produce a warning in the rendered view.
+Filter expressions are limited to the comparison operators and boolean combinators listed above; functions such as `file.hasTag(...)` are not supported and surface as a warning in the rendered view.
 
 ## Contributing
 
 When adding, removing, or repurposing files in this plug, update `ARCHITECTURE.md` in the same change.
-
-## Resources
-
-- https://silverbullet.md/Plugs
-- https://silverbullet.md/Plugs/Development
-- https://obsidian.md/help/bases/syntax

@@ -1,10 +1,11 @@
-export function parseYaml(text) {
-  const lines = text.replace(/\r\n?/g, "\n").split("\n")
-    .map((raw) => ({ raw, indent: raw.match(/^ */)[0].length, text: raw.trim() }))
-    .filter((line) => line.text !== "" && !line.text.startsWith("#"));
+import { dump as yamlDump, load as yamlLoad } from "js-yaml";
 
-  const [value] = parseBlock(lines, 0, 0);
-  return value ?? {};
+export function parseYaml(text) {
+  const value = yamlLoad(text ?? "");
+  if (value == null) {
+    return {};
+  }
+  return value;
 }
 
 export function parseMarkdownFrontmatter(text) {
@@ -169,94 +170,6 @@ export function buildBaseSearchContent(path, yamlText) {
     .join("\n");
 }
 
-function parseBlock(lines, index, indent) {
-  if (index >= lines.length || lines[index].indent < indent) {
-    return [null, index];
-  }
-  if (lines[index].text.startsWith("- ")) {
-    return parseSequence(lines, index, lines[index].indent);
-  }
-  return parseMapping(lines, index, lines[index].indent);
-}
-
-function parseSequence(lines, index, indent) {
-  const result = [];
-  let i = index;
-  while (i < lines.length && lines[i].indent === indent && lines[i].text.startsWith("- ")) {
-    const itemText = lines[i].text.slice(2).trim();
-    if (itemText === "") {
-      const [child, next] = parseBlock(lines, i + 1, indent + 2);
-      result.push(child);
-      i = next;
-    } else if (looksLikeMappingItem(itemText)) {
-      const item = {};
-      assignMappingValue(item, itemText, lines, i, indent + 2);
-      i++;
-      while (i < lines.length && lines[i].indent >= indent + 2) {
-        if (lines[i].indent === indent + 2 && !lines[i].text.startsWith("- ")) {
-          const [childMap, next] = parseMapping(lines, i, indent + 2);
-          Object.assign(item, childMap);
-          i = next;
-        } else {
-          break;
-        }
-      }
-      result.push(item);
-    } else {
-      result.push(parseScalar(itemText));
-      i++;
-    }
-  }
-  return [result, i];
-}
-
-function parseMapping(lines, index, indent) {
-  const result = {};
-  let i = index;
-  while (i < lines.length && lines[i].indent === indent && !lines[i].text.startsWith("- ")) {
-    const lineText = lines[i].text;
-    const [key, valueText] = splitKeyValue(lineText);
-    if (valueText === "") {
-      if (i + 1 < lines.length && lines[i + 1].indent > indent) {
-        const [child, next] = parseBlock(lines, i + 1, lines[i + 1].indent);
-        result[key] = child;
-        i = next;
-      } else {
-        result[key] = null;
-        i++;
-      }
-    } else {
-      result[key] = parseScalar(valueText);
-      i++;
-    }
-  }
-  return [result, i];
-}
-
-function assignMappingValue(target, text, lines, index, childIndent) {
-  const [key, valueText] = splitKeyValue(text);
-  if (valueText === "" && index + 1 < lines.length && lines[index + 1].indent >= childIndent) {
-    const [child] = parseBlock(lines, index + 1, childIndent);
-    target[key] = child;
-  } else if (valueText === "") {
-    target[key] = null;
-  } else {
-    target[key] = parseScalar(valueText);
-  }
-}
-
-function looksLikeMappingItem(text) {
-  return /^[^"'][^:]+:/.test(text);
-}
-
-function splitKeyValue(text) {
-  const colon = text.indexOf(":");
-  if (colon === -1) {
-    throw new Error(`Invalid YAML mapping line: ${text}`);
-  }
-  return [text.slice(0, colon).trim(), text.slice(colon + 1).trim()];
-}
-
 function parseScalar(text) {
   if (text === "" || text === "~" || text === "null") {
     return null;
@@ -320,37 +233,10 @@ function parseEditedValue(textValue, previousValue) {
 }
 
 function serializeFlatYaml(value) {
-  return Object.entries(value)
-    .map(([key, item]) => serializeYamlEntry(key, item))
-    .join("\n");
-}
-
-function serializeYamlEntry(key, value) {
-  if (Array.isArray(value)) {
-    if (value.length === 0) {
-      return `${key}: []`;
-    }
-    return `${key}:\n${value.map((item) => `  - ${serializeScalar(item)}`).join("\n")}`;
+  if (Object.keys(value).length === 0) {
+    return "";
   }
-  return `${key}: ${serializeScalar(value)}`;
-}
-
-function serializeScalar(value) {
-  if (value == null) {
-    return "null";
-  }
-  if (typeof value === "number" || typeof value === "boolean") {
-    return String(value);
-  }
-
-  const text = String(value);
-  if (text === "") {
-    return '""';
-  }
-  if (/[:#\[\]{},&*!|>'"%@`]/.test(text) || /^\s|\s$|^(true|false|null|~|-?\d+(\.\d+)?)$/i.test(text)) {
-    return JSON.stringify(text);
-  }
-  return text;
+  return yamlDump(value, { lineWidth: -1, noRefs: true }).replace(/\n+$/, "");
 }
 
 function evaluateFilterExpression(expression, row, warnings) {

@@ -12,8 +12,8 @@
 - `silverbullet-bases.plug.js.map`: Source map generated alongside the bundle (gitignored).
 - `package.json`: Node package metadata, scripts, and SilverBullet build dependency declaration.
 - `package-lock.json`: Locked npm dependency graph for reproducible installs.
-- `scripts/generate-viewer.mjs`: Concatenates `src/core.mjs` with the iframe viewer code and writes `src/generated/viewer-script.js` for the document editor to embed.
-- `src/core.mjs`: Pure module shared by tests and the iframe viewer. Contains the YAML parser, frontmatter reader/writer, filter evaluator, table model builder, sort comparator, and the search-content builder.
+- `scripts/generate-viewer.mjs`: Concatenates the `js-yaml` UMD bundle, `src/core.mjs`, and the iframe viewer code, then writes `src/generated/viewer-script.js` for the document editor to embed.
+- `src/core.mjs`: Pure module shared by tests and the iframe viewer. Wraps `js-yaml` for parsing/dumping and contains the frontmatter reader/writer, filter evaluator, table model builder, sort comparator, and the search-content builder.
 - `src/editor.js`: SilverBullet document editor entrypoint. Returns the iframe HTML (CSS + embedded viewer script) for `.base` files.
 - `src/generated/viewer-script.js`: Generated browser script embedded by the document editor iframe. Do not edit by hand — re-run `npm run generate-viewer`.
 - `src/silversearch.js`: `silversearch:index` event handler that produces searchable text for `.base` documents.
@@ -25,6 +25,6 @@
 - The iframe viewer (generated from `core.mjs` plus the trailing block in `scripts/generate-viewer.mjs`) is the only place that talks to the SilverBullet document-editor bridge (`window.silverbullet.syscall` / `addEventListener`).
 - `src/silversearch.js` runs in the plug sandbox and uses the global `syscall` injected by SilverBullet to read raw `.base` bytes before delegating to `buildBaseSearchContent`.
 
-## YAML support scope
+## YAML handling
 
-The hand-rolled parser in `core.mjs` is intentionally minimal: indentation-based mappings and sequences, scalar booleans / null / numbers / quoted strings, and inline-empty `[]`. It is not a YAML 1.2 implementation and does not handle anchors, multi-line scalars, or flow collections. This is sufficient for `.base` configuration and the frontmatter shapes produced by the in-place cell editor.
+`core.mjs` delegates parsing and serialization to [`js-yaml`](https://github.com/nodeca/js-yaml). The plug runtime imports it as a regular ESM dependency (bundled by `plug-compile`), and the iframe viewer inlines the UMD build that ships under `node_modules/js-yaml/dist/js-yaml.min.js` so `parseYaml`/`serializeFlatYaml` resolve to `jsyaml.load`/`jsyaml.dump` in the browser. A small `parseScalar` helper is kept in `core.mjs` for the right-hand side of filter comparison expressions, which are not full YAML documents.
