@@ -189,6 +189,61 @@ title: "Solo Concerts: Bremen/Lausanne"
   assert.deepEqual(model.warnings, []);
 });
 
+test("builds rows matching folder function filters including subfolders", () => {
+  const model = buildTableModel({
+    views: [{
+      type: "table",
+      filters: "file.inFolder(\"Music/Artists\")",
+      order: ["file.name"],
+    }],
+  }, [
+    makeRowFromFile({ name: "Music/Artists/pharoah-sanders.md" }, "---\n---\n"),
+    makeRowFromFile({ name: "Music/Artists/Collaborations/alice-coltrane.md" }, "---\n---\n"),
+    makeRowFromFile({ name: "Music/Drafts/sun-ra.md" }, "---\n---\n"),
+  ]);
+
+  assert.deepEqual(model.rows.map((row) => row.cells[0]), [
+    "pharoah-sanders",
+    "alice-coltrane",
+  ]);
+  assert.deepEqual(model.warnings, []);
+});
+
+test("exposes supported file metadata columns", () => {
+  const row = makeRowFromFile({
+    name: "Music/Artists/nina-simone.md",
+    size: 1024,
+    modified: 1700000000000,
+    created: 1600000000000,
+  }, musicNotes["Music/Artists/nina-simone.md"]);
+  const model = buildTableModel({
+    views: [{
+      type: "table",
+      order: [
+        "file.name",
+        "file.basename",
+        "file.ext",
+        "file.folder",
+        "file.path",
+        "file.size",
+        "file.mtime",
+        "file.ctime",
+      ],
+    }],
+  }, [row]);
+
+  assert.deepEqual(model.rows[0].cells, [
+    "nina-simone",
+    "nina-simone",
+    "md",
+    "Music/Artists",
+    "Music/Artists/nina-simone.md",
+    "1024",
+    "1700000000000",
+    "1600000000000",
+  ]);
+});
+
 test("updates scalar frontmatter values for editable table cells", () => {
   const updated = updateMarkdownFrontmatterValue(
     musicNotes["Music/Artists/nina-simone.md"],

@@ -10,8 +10,8 @@ A [SilverBullet](https://silverbullet.md) plug that registers `.base` files as a
 ## Features
 
 - Table views over Markdown notes using `.base` YAML configuration.
-- Properties: Markdown frontmatter keys and the `file.name`, `file.ext`, `file.folder` virtual properties.
-- Filters: comparison operators (`==`, `!=`, `<`, `<=`, `>`, `>=`) combined recursively with `and` / `or` / `not`.
+- Properties: Markdown frontmatter keys and the `file.name`, `file.basename`, `file.ext`, `file.folder`, `file.path`, `file.size`, `file.mtime`, `file.ctime` virtual properties.
+- Filters: comparison operators (`==`, `!=`, `<`, `<=`, `>`, `>=`) plus `file.hasTag(...)` and `file.inFolder(...)`, combined recursively with `and` / `or` / `not`.
 - Ordered columns with optional display-name overrides and persisted column widths.
 - Click column headers to sort ascending → descending → unsorted.
 - In-place editing for frontmatter cells (Enter to save, Escape to cancel); editing `title` also renames the page file.
@@ -57,7 +57,14 @@ npm test
 
 ## Limitations
 
-Filter expressions are limited to the comparison operators and boolean combinators listed above; functions such as `file.hasTag(...)` are not supported and surface as a warning in the rendered view.
+This plug supports a focused subset of Obsidian Bases syntax. The following syntax is not supported yet:
+
+- Formula properties defined in `formulas`, including references through `formula.*`.
+- Summary formulas defined in top-level `summaries`, view-level `summaries`, and the default summary aggregations such as `Average`, `Min`, `Max`, and `Sum`.
+- View options other than a basic table's `filters`, `order`, and `columnSize`; this includes `limit`, `groupBy`, summary rows, and non-table view types.
+- Filter and formula expression features beyond simple property comparisons, `file.hasTag(...)`, and `file.inFolder(...)`; this includes arithmetic operators, date arithmetic, inline boolean operators (`!`, `&&`, `||`), and built-in or plugin-provided functions such as `file.hasLink(...)`, `today()`, `now()`, `date(...)`, `link(...)`, and `list(...)`.
+- Property access forms beyond direct note properties and the currently implemented file properties; this includes `this`, bracket notation such as `note["price"]`, nested object/list access, list indexes, and most file properties such as `file.backlinks`, `file.embeds`, `file.links`, `file.properties`, and `file.tags`.
+- Bases-specific value types and rendering semantics for dates, durations, File objects, Link objects, and Wikilinks in frontmatter properties.
 
 ## Contributing
 

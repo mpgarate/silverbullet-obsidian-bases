@@ -195,6 +195,7 @@ function makeRowFromFile(meta, markdown) {
   return {
     file: {
       name: name.replace(/\\.[^.]+$/, ""),
+      basename: name.replace(/\\.[^.]+$/, ""),
       ext,
       folder,
       path,
@@ -372,6 +373,11 @@ function evaluateFilterExpression(expression, row, warnings) {
     return fileHasTag(row, parseScalar(tagMatch[1].trim()));
   }
 
+  const inFolderMatch = expression.match(/^file\\.inFolder\\((.+)\\)$/);
+  if (inFolderMatch) {
+    return fileInFolder(row, parseScalar(inFolderMatch[1].trim()));
+  }
+
   const match = expression.match(/^(.+?)\\s*(==|!=|>=|<=|>|<)\\s*(.+)$/);
   if (!match) {
     warnings.push(\`Unsupported filter expression: \${expression}\`);
@@ -409,6 +415,18 @@ function fileHasTag(row, tag) {
     return tags.includes(tag);
   }
   return tags === tag;
+}
+
+function fileInFolder(row, folder) {
+  if (typeof folder !== "string") {
+    return false;
+  }
+  const expectedFolder = normalizePath(folder.trim()).replace(/\\/+$/, "");
+  const actualFolder = normalizePath(row.file?.folder ?? "").replace(/\\/+$/, "");
+  if (expectedFolder === "") {
+    return actualFolder === "";
+  }
+  return actualFolder === expectedFolder || actualFolder.startsWith(\`\${expectedFolder}/\`);
 }
 
 function collectEqualityFilters(filter) {
