@@ -158,6 +158,7 @@ export async function editor() {
     }
     .page-link {
       color: light-dark(#1d4ed8, #93c5fd);
+      cursor: pointer;
       text-decoration: none;
     }
     .page-link:hover,

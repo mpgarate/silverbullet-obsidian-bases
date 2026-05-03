@@ -117,6 +117,11 @@ function renderModel(model, baseName) {
       if (!column.editable) {
         return '<td>' + escapeHtml(cell) + '</td>';
       }
+      if (isPageTitleProperty(column.property)) {
+        return '<td contenteditable="true" spellcheck="false" data-row-index="' + rowIndex +
+          '" data-column-index="' + columnIndex + '"><a class="page-link" href="#" data-page-path="' +
+          escapeHtml(row.file.file.path) + '">' + escapeHtml(cell) + '</a></td>';
+      }
       return '<td contenteditable="true" spellcheck="false" data-row-index="' + rowIndex +
         '" data-column-index="' + columnIndex + '">' + escapeHtml(cell) + '</td>';
     }).join("") + '</tr>'
