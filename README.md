@@ -14,6 +14,7 @@ A [SilverBullet](https://silverbullet.md) plug that registers `.base` files as a
 - Filters: comparison operators (`==`, `!=`, `<`, `<=`, `>`, `>=`) plus `file.hasTag(...)` and `file.inFolder(...)`, combined recursively with `and` / `or` / `not`.
 - Ordered columns with optional display-name overrides and persisted column widths.
 - Click column headers to sort ascending → descending → unsorted.
+- Whole-cell `http` and `https` URLs render as clickable links.
 - In-place editing for frontmatter cells (Enter to save, Escape to cancel); editing `title` also renames the page file.
 - "Add entry" creates a new note pre-populated with the base's equality filters as frontmatter.
 - `.base` files are indexed by Silversearch when that plug is installed.

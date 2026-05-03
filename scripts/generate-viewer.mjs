@@ -36,6 +36,14 @@ function escapeHtml(value) {
   })[char]);
 }
 
+function renderCellContent(cell) {
+  const url = clickableUrl(cell);
+  if (!url) {
+    return escapeHtml(cell);
+  }
+  return '<a class="external-link" href="' + escapeHtml(url) + '" target="_blank" rel="noopener noreferrer">' + escapeHtml(cell) + '</a>';
+}
+
 async function syscall(name, ...args) {
   if (!window.silverbullet?.syscall) {
     throw new Error("SilverBullet document editor syscall bridge is unavailable.");
@@ -117,7 +125,7 @@ function renderModel(model, baseName) {
           '">' + escapeHtml(cell) + '</a></td>';
       }
       if (!column.editable) {
-        return '<td>' + escapeHtml(cell) + '</td>';
+        return '<td>' + renderCellContent(cell) + '</td>';
       }
       if (isPageTitleProperty(column.property)) {
         return '<td contenteditable="true" spellcheck="false" data-row-index="' + rowIndex +
@@ -125,7 +133,7 @@ function renderModel(model, baseName) {
           escapeHtml(row.file.file.path) + '">' + escapeHtml(cell) + '</a></td>';
       }
       return '<td contenteditable="true" spellcheck="false" data-row-index="' + rowIndex +
-        '" data-column-index="' + columnIndex + '">' + escapeHtml(cell) + '</td>';
+        '" data-column-index="' + columnIndex + '">' + renderCellContent(cell) + '</td>';
     }).join("") + '</tr>'
   )).join("");
 
@@ -149,6 +157,7 @@ function renderModel(model, baseName) {
   document.querySelector("tbody")?.addEventListener("focusout", saveEditedCell);
   document.querySelector("tbody")?.addEventListener("keydown", handleCellKeydown);
   document.querySelector("tbody")?.addEventListener("click", openLinkedPage);
+  document.querySelector("tbody")?.addEventListener("click", openExternalLink);
   document.querySelector("thead")?.addEventListener("pointerdown", beginColumnResize);
   document.querySelector("thead")?.addEventListener("keydown", handleColumnResizeKeydown);
   document.querySelector("thead")?.addEventListener("focusin", rememberColumnTitle);
@@ -317,6 +326,19 @@ async function openLinkedPage(event) {
     setStatus("Open failed");
     console.error(error);
   }
+}
+
+function openExternalLink(event) {
+  const link = event.target.closest?.(".external-link");
+  if (!link) {
+    return;
+  }
+  const url = clickableUrl(link.href);
+  if (!url) {
+    return;
+  }
+  event.preventDefault();
+  window.open(url, "_blank", "noopener,noreferrer");
 }
 
 function beginColumnResize(event) {

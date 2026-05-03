@@ -4,6 +4,7 @@ import {
   buildBaseSearchContent,
   buildNewEntryDraft,
   buildTableModel,
+  clickableUrl,
   entryFileName,
   makeRowFromFile,
   parseMarkdownFrontmatter,
@@ -231,6 +232,20 @@ test("exposes supported file metadata columns", () => {
       ],
     }],
   }, [row]);
+  const formattedModified = new Date(1700000000000).toLocaleString(undefined, {
+    year: "numeric",
+    month: "short",
+    day: "numeric",
+    hour: "numeric",
+    minute: "2-digit",
+  });
+  const formattedCreated = new Date(1600000000000).toLocaleString(undefined, {
+    year: "numeric",
+    month: "short",
+    day: "numeric",
+    hour: "numeric",
+    minute: "2-digit",
+  });
 
   assert.deepEqual(model.rows[0].cells, [
     "nina-simone",
@@ -239,8 +254,8 @@ test("exposes supported file metadata columns", () => {
     "Music/Artists",
     "Music/Artists/nina-simone.md",
     "1024",
-    "1700000000000",
-    "1600000000000",
+    formattedModified,
+    formattedCreated,
   ]);
 });
 
@@ -417,4 +432,12 @@ test("builds searchable content for base files", () => {
   assert.match(content, /Albums/);
   assert.match(content, /primary genre/);
   assert.match(content, /Music\/Artists/);
+});
+
+test("detects whole-cell http and https URLs", () => {
+  assert.equal(clickableUrl("https://example.com/releases?album=one"), "https://example.com/releases?album=one");
+  assert.equal(clickableUrl(" http://example.com/path "), "http://example.com/path");
+  assert.equal(clickableUrl("ftp://example.com/path"), null);
+  assert.equal(clickableUrl("See https://example.com"), null);
+  assert.equal(clickableUrl("example.com"), null);
 });

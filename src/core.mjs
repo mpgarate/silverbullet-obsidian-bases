@@ -64,7 +64,7 @@ export function buildTableModel(baseConfig, files) {
     .map((file) => ({
       file,
       values: columns.map((column) => resolveProperty(file, column.property)),
-      cells: columns.map((column) => formatValue(resolveProperty(file, column.property))),
+      cells: columns.map((column) => formatValue(resolveProperty(file, column.property), column.property)),
     }));
 
   return { columns, rows, warnings: unique(warnings) };
@@ -237,6 +237,19 @@ export function buildBaseSearchContent(path, yamlText) {
   return unique(parts.flatMap(splitSearchContentLine))
     .filter(Boolean)
     .join("\n");
+}
+
+export function clickableUrl(value) {
+  const text = String(value ?? "").trim();
+  if (text === "" || /\s/.test(text)) {
+    return null;
+  }
+  try {
+    const url = new URL(text);
+    return url.protocol === "http:" || url.protocol === "https:" ? url.href : null;
+  } catch {
+    return null;
+  }
 }
 
 function parseScalar(text) {
@@ -493,14 +506,31 @@ function columnSizeKeys(property) {
   return [property, `note.${property}`];
 }
 
-function formatValue(value) {
+function formatValue(value, property = "") {
   if (value == null) {
     return "";
+  }
+  if (property === "file.mtime" || property === "file.ctime") {
+    return formatDateTime(value);
   }
   if (Array.isArray(value)) {
     return value.filter((item) => item != null && item !== "").join(", ");
   }
   return String(value);
+}
+
+function formatDateTime(value) {
+  const date = value instanceof Date ? value : new Date(value);
+  if (Number.isNaN(date.getTime())) {
+    return String(value);
+  }
+  return date.toLocaleString(undefined, {
+    year: "numeric",
+    month: "short",
+    day: "numeric",
+    hour: "numeric",
+    minute: "2-digit",
+  });
 }
 
 function sortValueForRow(row, columnIndex) {

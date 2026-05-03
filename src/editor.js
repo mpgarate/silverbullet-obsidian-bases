@@ -158,13 +158,16 @@ export async function editor() {
       background: light-dark(#eef6ff, #102a43);
       box-shadow: inset 0 0 0 2px light-dark(#2563eb, #7dd3fc);
     }
-    .page-link {
+    .page-link,
+    .external-link {
       color: light-dark(#1d4ed8, #93c5fd);
       cursor: pointer;
       text-decoration: none;
     }
     .page-link:hover,
-    .page-link:focus-visible {
+    .page-link:focus-visible,
+    .external-link:hover,
+    .external-link:focus-visible {
       text-decoration: underline;
     }
     .warnings,
