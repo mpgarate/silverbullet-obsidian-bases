@@ -2,6 +2,11 @@
 
 A [SilverBullet](https://silverbullet.md) plug that registers `.base` files as a document editor and renders an [Obsidian Bases](https://obsidian.md/help/bases/syntax) table view over your space's notes. Also exposes `.base` content to [Silversearch](https://silverbullet.md/Plugs/Silversearch) via the `silversearch:index` event.
 
+## Screenshot
+
+<img width="600" alt="image" src="https://github.com/user-attachments/assets/7f599c53-89a9-4b27-b243-0b84e6c02cc0" />
+
+
 ## Features
 
 - Table views over Markdown notes using `.base` YAML configuration.
