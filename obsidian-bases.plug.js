@@ -1,4 +1,4 @@
-function M(n){let e=atob(n),i=e.length,t=new Uint8Array(i);for(let r=0;r<i;r++)t[r]=e.charCodeAt(r);return t}function w(n){typeof n=="string"&&(n=new TextEncoder().encode(n));let e="",i=n.byteLength;for(let t=0;t<i;t++)e+=String.fromCharCode(n[t]);return btoa(e)}var D=new Uint8Array(16),T=class{constructor(n="",e=1e3){this.prefix=n,this.maxCaptureSize=e,this.prefix=n,this.originalConsole={log:console.log.bind(console),info:console.info.bind(console),warn:console.warn.bind(console),error:console.error.bind(console),debug:console.debug.bind(console)},this.patchConsole()}originalConsole;logBuffer=[];patchConsole(){let n=e=>(...i)=>{let t=this.prefix?[this.prefix,...i]:i;this.originalConsole[e](...t),this.captureLog(e,i)};console.log=n("log"),console.info=n("info"),console.warn=n("warn"),console.error=n("error"),console.debug=n("debug")}captureLog(n,e){let i={level:n,timestamp:Date.now(),message:e.map(t=>{if(typeof t=="string")return t;try{return JSON.stringify(t)}catch{return String(t)}}).join(" ")};this.logBuffer.push(i),this.logBuffer.length>this.maxCaptureSize&&this.logBuffer.shift()}async postToServer(n,e){if(this.logBuffer.length>0){let t=[...this.logBuffer];this.logBuffer=[];try{if(!(await fetch(n,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(t.map(a=>({...a,source:e})))})).ok)throw new Error("Failed to post logs to server")}catch(r){console.warn("Could not post logs to server",r.message),this.logBuffer.unshift(...t)}}}},g;function F(n=""){return g=new T(n),g}var l=n=>{throw new Error("Not initialized yet")},f=typeof window>"u"&&typeof globalThis.WebSocketPair>"u",m=new Map,d=0;f&&(globalThis.syscall=async(n,...e)=>await new Promise((i,t)=>{d++,m.set(d,{resolve:i,reject:t}),l({type:"sys",id:d,name:n,args:e})}));function y(n,e,i){f&&(l=i,self.addEventListener("message",t=>{(async()=>{let r=t.data;switch(r.type){case"inv":{let a=n[r.name];if(!a)throw new Error(`Function not loaded: ${r.name}`);try{let o=await Promise.resolve(a(...r.args||[]));l({type:"invr",id:r.id,result:o})}catch(o){console.error("An exception was thrown as a result of invoking function",r.name,"error:",o.message),l({type:"invr",id:r.id,error:o.message})}}break;case"sysr":{let a=r.id,o=m.get(a);if(!o)throw Error("Invalid request id");m.delete(a),r.error?o.reject(new Error(r.error)):o.resolve(r.result)}break}})().catch(console.error)}),l({type:"manifest",manifest:e}),F(`[${e.name} plug]`))}async function B(n,e){if(typeof n!="string"){let i=new Uint8Array(await n.arrayBuffer()),t=i.length>0?w(i):void 0;e={method:n.method,headers:Object.fromEntries(n.headers.entries()),base64Body:t},n=n.url}return syscall("sandboxFetch.fetch",n,e)}globalThis.nativeFetch=globalThis.fetch;function L(){globalThis.fetch=async(n,e)=>{let i=e?.body?w(new Uint8Array(await new Response(e.body).arrayBuffer())):void 0,t=await B(n,e&&{method:e.method,headers:e.headers,base64Body:i});return new Response(t.base64Body?M(t.base64Body):null,{status:t.status,headers:t.headers})}}f&&L();var x=`function parseYaml(text) {
+function F(n){let e=atob(n),i=e.length,t=new Uint8Array(i);for(let r=0;r<i;r++)t[r]=e.charCodeAt(r);return t}function g(n){typeof n=="string"&&(n=new TextEncoder().encode(n));let e="",i=n.byteLength;for(let t=0;t<i;t++)e+=String.fromCharCode(n[t]);return btoa(e)}var V=new Uint8Array(16),M=class{constructor(n="",e=1e3){this.prefix=n,this.maxCaptureSize=e,this.prefix=n,this.originalConsole={log:console.log.bind(console),info:console.info.bind(console),warn:console.warn.bind(console),error:console.error.bind(console),debug:console.debug.bind(console)},this.patchConsole()}originalConsole;logBuffer=[];patchConsole(){let n=e=>(...i)=>{let t=this.prefix?[this.prefix,...i]:i;this.originalConsole[e](...t),this.captureLog(e,i)};console.log=n("log"),console.info=n("info"),console.warn=n("warn"),console.error=n("error"),console.debug=n("debug")}captureLog(n,e){let i={level:n,timestamp:Date.now(),message:e.map(t=>{if(typeof t=="string")return t;try{return JSON.stringify(t)}catch{return String(t)}}).join(" ")};this.logBuffer.push(i),this.logBuffer.length>this.maxCaptureSize&&this.logBuffer.shift()}async postToServer(n,e){if(this.logBuffer.length>0){let t=[...this.logBuffer];this.logBuffer=[];try{if(!(await fetch(n,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(t.map(a=>({...a,source:e})))})).ok)throw new Error("Failed to post logs to server")}catch(r){console.warn("Could not post logs to server",r.message),this.logBuffer.unshift(...t)}}}},y;function B(n=""){return y=new M(n),y}var s=n=>{throw new Error("Not initialized yet")},m=typeof window>"u"&&typeof globalThis.WebSocketPair>"u",f=new Map,d=0;m&&(globalThis.syscall=async(n,...e)=>await new Promise((i,t)=>{d++,f.set(d,{resolve:i,reject:t}),s({type:"sys",id:d,name:n,args:e})}));function w(n,e,i){m&&(s=i,self.addEventListener("message",t=>{(async()=>{let r=t.data;switch(r.type){case"inv":{let a=n[r.name];if(!a)throw new Error(`Function not loaded: ${r.name}`);try{let o=await Promise.resolve(a(...r.args||[]));s({type:"invr",id:r.id,result:o})}catch(o){console.error("An exception was thrown as a result of invoking function",r.name,"error:",o.message),s({type:"invr",id:r.id,error:o.message})}}break;case"sysr":{let a=r.id,o=f.get(a);if(!o)throw Error("Invalid request id");f.delete(a),r.error?o.reject(new Error(r.error)):o.resolve(r.result)}break}})().catch(console.error)}),s({type:"manifest",manifest:e}),B(`[${e.name} plug]`))}async function T(n,e){if(typeof n!="string"){let i=new Uint8Array(await n.arrayBuffer()),t=i.length>0?g(i):void 0;e={method:n.method,headers:Object.fromEntries(n.headers.entries()),base64Body:t},n=n.url}return syscall("sandboxFetch.fetch",n,e)}globalThis.nativeFetch=globalThis.fetch;function N(){globalThis.fetch=async(n,e)=>{let i=e?.body?g(new Uint8Array(await new Response(e.body).arrayBuffer())):void 0,t=await T(n,e&&{method:e.method,headers:e.headers,base64Body:i});return new Response(t.base64Body?F(t.base64Body):null,{status:t.status,headers:t.headers})}}m&&N();var b=`function parseYaml(text) {
   const lines = text.replace(/\\r\\n?/g, "\\n").split("\\n")
     .map((raw) => ({ raw, indent: raw.match(/^ */)[0].length, text: raw.trim() }))
     .filter((line) => line.text !== "" && !line.text.startsWith("#"));
@@ -83,6 +83,27 @@ function updateMarkdownFrontmatterValue(markdown, property, textValue) {
   return \`\${normalized.slice(0, bounds.blockStart)}\${nextFrontmatter}\${normalized.slice(bounds.blockEnd)}\`;
 }
 
+function buildNewEntryDraft(baseConfig, basePath, title) {
+  const view = (baseConfig.views ?? []).find((candidate) => candidate.type === "table");
+  const equalityFilters = collectEqualityFilters({ and: [baseConfig.filters, view?.filters].filter(Boolean) });
+  const folder = equalityFilters.find((filter) => filter.property === "file.folder")?.value
+    ?? normalizePath(basePath).split("/").slice(0, -1).join("/");
+  const frontmatter = {};
+
+  for (const filter of equalityFilters) {
+    if (filter.property.startsWith("file.")) {
+      continue;
+    }
+    frontmatter[frontmatterKey(filter.property)] = filter.value;
+  }
+
+  const fileName = entryFileName(title);
+  const path = normalizePath([folder, fileName].filter(Boolean).join("/"));
+  const yaml = serializeFlatYaml(frontmatter);
+  const markdown = \`---\\n\${yaml}\${yaml ? "\\n" : ""}---\\n\`;
+  return { path, markdown };
+}
+
 function makeRowFromFile(meta, markdown) {
   const path = normalizePath(meta.name ?? meta.path ?? "");
   const name = path.split("/").pop() ?? path;
@@ -101,6 +122,16 @@ function makeRowFromFile(meta, markdown) {
     },
     note: parseMarkdownFrontmatter(markdown),
   };
+}
+
+function entryFileName(title) {
+  const normalized = String(title ?? "")
+    .trim()
+    .replace(/\\.md$/i, "")
+    .replace(/[\\\\/]/g, "-")
+    .replace(/[\\u0000-\\u001f]/g, "")
+    .replace(/\\s+/g, " ");
+  return \`\${normalized || "Untitled"}.md\`;
 }
 
 function buildBaseSearchContent(path, yamlText) {
@@ -333,6 +364,26 @@ function evaluateFilterExpression(expression, row, warnings) {
   }
 }
 
+function collectEqualityFilters(filter) {
+  if (!filter) {
+    return [];
+  }
+  if (typeof filter === "string") {
+    const match = filter.match(/^(.+?)\\s*==\\s*(.+)$/);
+    if (!match) {
+      return [];
+    }
+    return [{ property: match[1].trim(), value: parseScalar(match[2].trim()) }];
+  }
+  if (Array.isArray(filter)) {
+    return filter.flatMap(collectEqualityFilters);
+  }
+  if (filter.and) {
+    return filter.and.flatMap(collectEqualityFilters);
+  }
+  return [];
+}
+
 function resolveProperty(row, property) {
   if (property.startsWith("file.")) {
     return row.file?.[property.slice(5)];
@@ -430,6 +481,7 @@ const MIN_COLUMN_WIDTH = 80;
 const MAX_COLUMN_WIDTH = 900;
 let currentBaseConfig = null;
 let currentBaseName = "Base";
+let currentBasePath = "";
 let activeColumnResize = null;
 
 function escapeHtml(value) {
@@ -459,6 +511,10 @@ async function readFileText(name) {
 
 async function writeFileText(name, text) {
   await syscall("space.writeFile", name, encoder.encode(text));
+}
+
+async function fileExists(name) {
+  return await syscall("space.fileExists", name);
 }
 
 async function loadMarkdownRows() {
@@ -501,6 +557,10 @@ function renderModel(model, baseName) {
   const rowHtml = model.rows.map((row, rowIndex) => (
     '<tr>' + row.cells.map((cell, columnIndex) => {
       const column = model.columns[columnIndex];
+      if (column.property === "file.name") {
+        return '<td><a class="page-link" href="#" data-page-path="' + escapeHtml(row.file.file.path) +
+          '">' + escapeHtml(cell) + '</a></td>';
+      }
       if (!column.editable) {
         return '<td>' + escapeHtml(cell) + '</td>';
       }
@@ -510,17 +570,73 @@ function renderModel(model, baseName) {
   )).join("");
 
   document.body.innerHTML = '<main>' +
-    '<header><h1>' + escapeHtml(baseName) + '</h1><span id="status">' + model.rows.length + ' rows</span></header>' +
+    '<header><h1>' + escapeHtml(baseName) + '</h1><div class="header-actions">' +
+    '<button id="add-entry" type="button">Add entry</button><span id="status">' + model.rows.length +
+    ' rows</span></div></header>' +
     warningHtml +
     '<div class="table-wrap"><table style="--table-width: ' + sum(columnWidths) + 'px"><colgroup>' +
     colgroupHtml + '</colgroup><thead><tr>' + headerHtml + '</tr></thead><tbody>' + rowHtml + '</tbody></table></div>' +
     '</main>';
+  document.getElementById("add-entry")?.addEventListener("click", addEntry);
   document.querySelector("tbody")?.addEventListener("focusin", rememberCellValue);
   document.querySelector("tbody")?.addEventListener("focusout", saveEditedCell);
   document.querySelector("tbody")?.addEventListener("keydown", handleCellKeydown);
+  document.querySelector("tbody")?.addEventListener("click", openLinkedPage);
   document.querySelector("thead")?.addEventListener("pointerdown", beginColumnResize);
   document.querySelector("thead")?.addEventListener("keydown", handleColumnResizeKeydown);
   window.currentModel = model;
+}
+
+async function addEntry() {
+  if (!currentBaseConfig) {
+    return;
+  }
+
+  const title = window.prompt("Entry name");
+  if (title == null) {
+    return;
+  }
+
+  try {
+    setStatus("Adding...");
+    const draft = await uniqueEntryDraft(currentBaseConfig, currentBasePath, title);
+    await writeFileText(draft.path, draft.markdown);
+    const rows = await loadMarkdownRows();
+    renderModel(buildTableModel(currentBaseConfig, rows), currentBaseName);
+  } catch (error) {
+    setStatus("Add failed");
+    console.error(error);
+  }
+}
+
+async function uniqueEntryDraft(baseConfig, basePath, title) {
+  const draft = buildNewEntryDraft(baseConfig, basePath, title);
+  if (!await fileExists(draft.path)) {
+    return draft;
+  }
+
+  const stem = draft.path.toLowerCase().endsWith(".md") ? draft.path.slice(0, -3) : draft.path;
+  for (let index = 2; index < 1000; index++) {
+    const path = stem + " (" + index + ").md";
+    if (!await fileExists(path)) {
+      return { ...draft, path };
+    }
+  }
+  throw new Error("Could not find an available entry name.");
+}
+
+async function openLinkedPage(event) {
+  const link = event.target.closest?.(".page-link");
+  if (!link) {
+    return;
+  }
+  event.preventDefault();
+  try {
+    await syscall("editor.navigate", { path: link.dataset.pagePath });
+  } catch (error) {
+    setStatus("Open failed");
+    console.error(error);
+  }
 }
 
 function beginColumnResize(event) {
@@ -716,6 +832,7 @@ async function openBase(event) {
     const baseConfig = parseYaml(yamlText);
     currentBaseConfig = baseConfig;
     currentBaseName = meta.name ?? "Base";
+    currentBasePath = meta.name ?? meta.path ?? "";
     const rows = await loadMarkdownRows();
     renderModel(buildTableModel(baseConfig, rows), currentBaseName);
   } catch (error) {
@@ -726,7 +843,7 @@ async function openBase(event) {
 
 window.silverbullet?.addEventListener?.("file-open", openBase);
 window.silverbullet?.addEventLister?.("file-open", openBase);
-`;async function b(){return{html:`<!doctype html>
+`;async function x(){return{html:`<!doctype html>
 <html>
 <head>
   <meta charset="utf-8">
@@ -761,6 +878,27 @@ window.silverbullet?.addEventLister?.("file-open", openBase);
       color: color-mix(in srgb, CanvasText 58%, Canvas);
       font-size: 13px;
       white-space: nowrap;
+    }
+    .header-actions {
+      align-items: center;
+      display: flex;
+      gap: 10px;
+    }
+    button {
+      background: light-dark(#f8fafc, #172033);
+      border: 1px solid color-mix(in srgb, CanvasText 24%, Canvas);
+      border-radius: 5px;
+      color: CanvasText;
+      cursor: pointer;
+      font: inherit;
+      font-size: 13px;
+      line-height: 1.2;
+      padding: 5px 9px;
+    }
+    button:hover,
+    button:focus-visible {
+      border-color: light-dark(#2563eb, #7dd3fc);
+      outline: 0;
     }
     .table-wrap {
       border: 1px solid color-mix(in srgb, CanvasText 18%, Canvas);
@@ -841,6 +979,14 @@ window.silverbullet?.addEventLister?.("file-open", openBase);
       background: light-dark(#eef6ff, #102a43);
       box-shadow: inset 0 0 0 2px light-dark(#2563eb, #7dd3fc);
     }
+    .page-link {
+      color: light-dark(#1d4ed8, #93c5fd);
+      text-decoration: none;
+    }
+    .page-link:hover,
+    .page-link:focus-visible {
+      text-decoration: underline;
+    }
     .warnings,
     .error {
       border-radius: 6px;
@@ -859,10 +1005,10 @@ window.silverbullet?.addEventLister?.("file-open", openBase);
 </head>
 <body>
   <main>Loading base...</main>
-  <script>${x}<\/script>
+  <script>${b}<\/script>
 </body>
-</html>`}}function N(n){let e=n.replace(/\r\n?/g,`
+</html>`}}function $(n){let e=n.replace(/\r\n?/g,`
 `).split(`
-`).map(t=>({raw:t,indent:t.match(/^ */)[0].length,text:t.trim()})).filter(t=>t.text!==""&&!t.text.startsWith("#")),[i]=c(e,0,0);return i??{}}function v(n,e){let t=["Obsidian Base",R(n).split("/").pop()?.replace(/\.base$/i,"")??""];try{let r=N(e);p(r,t)}catch{}return t.push(e),O(t.flatMap(V)).filter(Boolean).join(`
-`)}function c(n,e,i){return e>=n.length||n[e].indent<i?[null,e]:n[e].text.startsWith("- ")?$(n,e,n[e].indent):C(n,e,n[e].indent)}function $(n,e,i){let t=[],r=e;for(;r<n.length&&n[r].indent===i&&n[r].text.startsWith("- ");){let a=n[r].text.slice(2).trim();if(a===""){let[o,s]=c(n,r+1,i+2);t.push(o),r=s}else if(A(a)){let o={};for(I(o,a,n,r,i+2),r++;r<n.length&&n[r].indent>=i+2&&(n[r].indent===i+2&&!n[r].text.startsWith("- "));){let[s,u]=C(n,r,i+2);Object.assign(o,s),r=u}t.push(o)}else t.push(h(a)),r++}return[t,r]}function C(n,e,i){let t={},r=e;for(;r<n.length&&n[r].indent===i&&!n[r].text.startsWith("- ");){let a=n[r].text,[o,s]=S(a);if(s==="")if(r+1<n.length&&n[r+1].indent>i){let[u,E]=c(n,r+1,n[r+1].indent);t[o]=u,r=E}else t[o]=null,r++;else t[o]=h(s),r++}return[t,r]}function I(n,e,i,t,r){let[a,o]=S(e);if(o===""&&t+1<i.length&&i[t+1].indent>=r){let[s]=c(i,t+1,r);n[a]=s}else o===""?n[a]=null:n[a]=h(o)}function A(n){return/^[^"'][^:]+:/.test(n)}function S(n){let e=n.indexOf(":");if(e===-1)throw new Error(`Invalid YAML mapping line: ${n}`);return[n.slice(0,e).trim(),n.slice(e+1).trim()]}function h(n){return n===""||n==="~"||n==="null"?null:n==="[]"?[]:n==="true"?!0:n==="false"?!1:n.startsWith('"')&&n.endsWith('"')||n.startsWith("'")&&n.endsWith("'")?n.slice(1,-1):/^-?\d+(\.\d+)?$/.test(n)?Number(n):n}function R(n){return n.replace(/^\/+/,"").replace(/\\/g,"/")}function O(n){return[...new Set(n)]}function p(n,e){if(n!=null){if(Array.isArray(n)){for(let i of n)p(i,e);return}if(typeof n=="object"){for(let[i,t]of Object.entries(n))e.push(i),p(t,e);return}e.push(String(n))}}function V(n){return String(n).split(/\r?\n/).map(e=>e.trim())}var j=new TextDecoder;async function k(n){let e=n?.meta??{},i=e.name??e.path??"";if(!i.toLowerCase().endsWith(".base"))return null;let t=await syscall("space.readFile",i),r=typeof t=="string"?t:j.decode(t);return{content:v(i,r),cacheMode:"session"}}var W={editor:b,indexBaseDocument:k},z={name:"obsidian-bases",functions:{editor:{path:"./src/editor.js:editor",editor:["base"]},indexBaseDocument:{path:"./src/silversearch.js:indexBaseDocument",events:["silversearch:index"]}},assets:{}},Z={manifest:z,functionMapping:W};y(W,z,self.postMessage);export{Z as plug};
+`).map(t=>({raw:t,indent:t.match(/^ */)[0].length,text:t.trim()})).filter(t=>t.text!==""&&!t.text.startsWith("#")),[i]=c(e,0,0);return i??{}}function v(n,e){let t=["Obsidian Base",R(n).split("/").pop()?.replace(/\.base$/i,"")??""];try{let r=$(e);p(r,t)}catch{}return t.push(e),O(t.flatMap(j)).filter(Boolean).join(`
+`)}function c(n,e,i){return e>=n.length||n[e].indent<i?[null,e]:n[e].text.startsWith("- ")?L(n,e,n[e].indent):k(n,e,n[e].indent)}function L(n,e,i){let t=[],r=e;for(;r<n.length&&n[r].indent===i&&n[r].text.startsWith("- ");){let a=n[r].text.slice(2).trim();if(a===""){let[o,l]=c(n,r+1,i+2);t.push(o),r=l}else if(A(a)){let o={};for(I(o,a,n,r,i+2),r++;r<n.length&&n[r].indent>=i+2&&(n[r].indent===i+2&&!n[r].text.startsWith("- "));){let[l,u]=k(n,r,i+2);Object.assign(o,l),r=u}t.push(o)}else t.push(h(a)),r++}return[t,r]}function k(n,e,i){let t={},r=e;for(;r<n.length&&n[r].indent===i&&!n[r].text.startsWith("- ");){let a=n[r].text,[o,l]=C(a);if(l==="")if(r+1<n.length&&n[r+1].indent>i){let[u,z]=c(n,r+1,n[r+1].indent);t[o]=u,r=z}else t[o]=null,r++;else t[o]=h(l),r++}return[t,r]}function I(n,e,i,t,r){let[a,o]=C(e);if(o===""&&t+1<i.length&&i[t+1].indent>=r){let[l]=c(i,t+1,r);n[a]=l}else o===""?n[a]=null:n[a]=h(o)}function A(n){return/^[^"'][^:]+:/.test(n)}function C(n){let e=n.indexOf(":");if(e===-1)throw new Error(`Invalid YAML mapping line: ${n}`);return[n.slice(0,e).trim(),n.slice(e+1).trim()]}function h(n){return n===""||n==="~"||n==="null"?null:n==="[]"?[]:n==="true"?!0:n==="false"?!1:n.startsWith('"')&&n.endsWith('"')||n.startsWith("'")&&n.endsWith("'")?n.slice(1,-1):/^-?\d+(\.\d+)?$/.test(n)?Number(n):n}function R(n){return n.replace(/^\/+/,"").replace(/\\/g,"/")}function O(n){return[...new Set(n)]}function p(n,e){if(n!=null){if(Array.isArray(n)){for(let i of n)p(i,e);return}if(typeof n=="object"){for(let[i,t]of Object.entries(n))e.push(i),p(t,e);return}e.push(String(n))}}function j(n){return String(n).split(/\r?\n/).map(e=>e.trim())}var P=new TextDecoder;async function S(n){let e=n?.meta??{},i=e.name??e.path??"";if(!i.toLowerCase().endsWith(".base"))return null;let t=await syscall("space.readFile",i),r=typeof t=="string"?t:P.decode(t);return{content:v(i,r),cacheMode:"session"}}var E={editor:x,indexBaseDocument:S},W={name:"obsidian-bases",functions:{editor:{path:"./src/editor.js:editor",editor:["base"]},indexBaseDocument:{path:"./src/silversearch.js:indexBaseDocument",events:["silversearch:index"]}},assets:{}},Z={manifest:W,functionMapping:E};w(E,W,self.postMessage);export{Z as plug};
 //# sourceMappingURL=obsidian-bases.plug.js.map

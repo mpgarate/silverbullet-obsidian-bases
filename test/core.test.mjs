@@ -2,7 +2,9 @@ import assert from "node:assert/strict";
 import { test } from "node:test";
 import {
   buildBaseSearchContent,
+  buildNewEntryDraft,
   buildTableModel,
+  entryFileName,
   makeRowFromFile,
   parseMarkdownFrontmatter,
   parseYaml,
@@ -168,6 +170,49 @@ test("rejects edits to file properties", () => {
     () => updateMarkdownFrontmatterValue(musicNotes["Music/Artists/bjork.md"], "file.name", "new-name"),
     /read-only property/,
   );
+});
+
+test("builds a new entry draft that matches simple base equality filters", () => {
+  const draft = buildNewEntryDraft(parseYaml(musicBase), "Databases/Music.base", "Alice Coltrane");
+
+  assert.equal(draft.path, "Music/Artists/Alice Coltrane.md");
+  assert.deepEqual(parseMarkdownFrontmatter(draft.markdown), {});
+
+  const row = makeRowFromFile({ name: draft.path }, draft.markdown);
+  const model = buildTableModel(parseYaml(musicBase), [row]);
+  assert.equal(model.rows.length, 1);
+  assert.equal(model.rows[0].cells[0], "Alice Coltrane");
+});
+
+test("copies note equality filters into new entry frontmatter", () => {
+  const base = parseYaml(`filters:
+  and:
+    - note.status == "draft"
+views:
+  - type: table
+    filters:
+      and:
+        - file.folder == "Writing"
+        - file.ext == "md"
+        - category == "Essay"
+    order:
+      - file.name
+      - status
+      - category
+`);
+
+  const draft = buildNewEntryDraft(base, "Writing.base", "New / Idea.md");
+
+  assert.equal(draft.path, "Writing/New - Idea.md");
+  assert.deepEqual(parseMarkdownFrontmatter(draft.markdown), {
+    status: "draft",
+    category: "Essay",
+  });
+});
+
+test("normalizes empty new entry names", () => {
+  assert.equal(entryFileName(""), "Untitled.md");
+  assert.equal(entryFileName("Draft/One.md"), "Draft-One.md");
 });
 
 test("builds searchable content for base files", () => {

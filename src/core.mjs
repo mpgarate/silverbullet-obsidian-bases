@@ -83,6 +83,27 @@ export function updateMarkdownFrontmatterValue(markdown, property, textValue) {
   return `${normalized.slice(0, bounds.blockStart)}${nextFrontmatter}${normalized.slice(bounds.blockEnd)}`;
 }
 
+export function buildNewEntryDraft(baseConfig, basePath, title) {
+  const view = (baseConfig.views ?? []).find((candidate) => candidate.type === "table");
+  const equalityFilters = collectEqualityFilters({ and: [baseConfig.filters, view?.filters].filter(Boolean) });
+  const folder = equalityFilters.find((filter) => filter.property === "file.folder")?.value
+    ?? normalizePath(basePath).split("/").slice(0, -1).join("/");
+  const frontmatter = {};
+
+  for (const filter of equalityFilters) {
+    if (filter.property.startsWith("file.")) {
+      continue;
+    }
+    frontmatter[frontmatterKey(filter.property)] = filter.value;
+  }
+
+  const fileName = entryFileName(title);
+  const path = normalizePath([folder, fileName].filter(Boolean).join("/"));
+  const yaml = serializeFlatYaml(frontmatter);
+  const markdown = `---\n${yaml}${yaml ? "\n" : ""}---\n`;
+  return { path, markdown };
+}
+
 export function makeRowFromFile(meta, markdown) {
   const path = normalizePath(meta.name ?? meta.path ?? "");
   const name = path.split("/").pop() ?? path;
@@ -101,6 +122,16 @@ export function makeRowFromFile(meta, markdown) {
     },
     note: parseMarkdownFrontmatter(markdown),
   };
+}
+
+export function entryFileName(title) {
+  const normalized = String(title ?? "")
+    .trim()
+    .replace(/\.md$/i, "")
+    .replace(/[\\/]/g, "-")
+    .replace(/[\u0000-\u001f]/g, "")
+    .replace(/\s+/g, " ");
+  return `${normalized || "Untitled"}.md`;
 }
 
 export function buildBaseSearchContent(path, yamlText) {
@@ -331,6 +362,26 @@ function evaluateFilterExpression(expression, row, warnings) {
       warnings.push(`Unsupported filter operator: ${operator}`);
       return false;
   }
+}
+
+function collectEqualityFilters(filter) {
+  if (!filter) {
+    return [];
+  }
+  if (typeof filter === "string") {
+    const match = filter.match(/^(.+?)\s*==\s*(.+)$/);
+    if (!match) {
+      return [];
+    }
+    return [{ property: match[1].trim(), value: parseScalar(match[2].trim()) }];
+  }
+  if (Array.isArray(filter)) {
+    return filter.flatMap(collectEqualityFilters);
+  }
+  if (filter.and) {
+    return filter.and.flatMap(collectEqualityFilters);
+  }
+  return [];
 }
 
 function resolveProperty(row, property) {

@@ -38,6 +38,27 @@ export async function editor() {
       font-size: 13px;
       white-space: nowrap;
     }
+    .header-actions {
+      align-items: center;
+      display: flex;
+      gap: 10px;
+    }
+    button {
+      background: light-dark(#f8fafc, #172033);
+      border: 1px solid color-mix(in srgb, CanvasText 24%, Canvas);
+      border-radius: 5px;
+      color: CanvasText;
+      cursor: pointer;
+      font: inherit;
+      font-size: 13px;
+      line-height: 1.2;
+      padding: 5px 9px;
+    }
+    button:hover,
+    button:focus-visible {
+      border-color: light-dark(#2563eb, #7dd3fc);
+      outline: 0;
+    }
     .table-wrap {
       border: 1px solid color-mix(in srgb, CanvasText 18%, Canvas);
       border-radius: 6px;
@@ -116,6 +137,14 @@ export async function editor() {
     td[contenteditable="true"]:focus {
       background: light-dark(#eef6ff, #102a43);
       box-shadow: inset 0 0 0 2px light-dark(#2563eb, #7dd3fc);
+    }
+    .page-link {
+      color: light-dark(#1d4ed8, #93c5fd);
+      text-decoration: none;
+    }
+    .page-link:hover,
+    .page-link:focus-visible {
+      text-decoration: underline;
     }
     .warnings,
     .error {

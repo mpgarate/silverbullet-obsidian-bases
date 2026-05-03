@@ -12,6 +12,7 @@ const MIN_COLUMN_WIDTH = 80;
 const MAX_COLUMN_WIDTH = 900;
 let currentBaseConfig = null;
 let currentBaseName = "Base";
+let currentBasePath = "";
 let activeColumnResize = null;
 
 function escapeHtml(value) {
@@ -41,6 +42,10 @@ async function readFileText(name) {
 
 async function writeFileText(name, text) {
   await syscall("space.writeFile", name, encoder.encode(text));
+}
+
+async function fileExists(name) {
+  return await syscall("space.fileExists", name);
 }
 
 async function loadMarkdownRows() {
@@ -83,6 +88,10 @@ function renderModel(model, baseName) {
   const rowHtml = model.rows.map((row, rowIndex) => (
     '<tr>' + row.cells.map((cell, columnIndex) => {
       const column = model.columns[columnIndex];
+      if (column.property === "file.name") {
+        return '<td><a class="page-link" href="#" data-page-path="' + escapeHtml(row.file.file.path) +
+          '">' + escapeHtml(cell) + '</a></td>';
+      }
       if (!column.editable) {
         return '<td>' + escapeHtml(cell) + '</td>';
       }
@@ -92,17 +101,73 @@ function renderModel(model, baseName) {
   )).join("");
 
   document.body.innerHTML = '<main>' +
-    '<header><h1>' + escapeHtml(baseName) + '</h1><span id="status">' + model.rows.length + ' rows</span></header>' +
+    '<header><h1>' + escapeHtml(baseName) + '</h1><div class="header-actions">' +
+    '<button id="add-entry" type="button">Add entry</button><span id="status">' + model.rows.length +
+    ' rows</span></div></header>' +
     warningHtml +
     '<div class="table-wrap"><table style="--table-width: ' + sum(columnWidths) + 'px"><colgroup>' +
     colgroupHtml + '</colgroup><thead><tr>' + headerHtml + '</tr></thead><tbody>' + rowHtml + '</tbody></table></div>' +
     '</main>';
+  document.getElementById("add-entry")?.addEventListener("click", addEntry);
   document.querySelector("tbody")?.addEventListener("focusin", rememberCellValue);
   document.querySelector("tbody")?.addEventListener("focusout", saveEditedCell);
   document.querySelector("tbody")?.addEventListener("keydown", handleCellKeydown);
+  document.querySelector("tbody")?.addEventListener("click", openLinkedPage);
   document.querySelector("thead")?.addEventListener("pointerdown", beginColumnResize);
   document.querySelector("thead")?.addEventListener("keydown", handleColumnResizeKeydown);
   window.currentModel = model;
+}
+
+async function addEntry() {
+  if (!currentBaseConfig) {
+    return;
+  }
+
+  const title = window.prompt("Entry name");
+  if (title == null) {
+    return;
+  }
+
+  try {
+    setStatus("Adding...");
+    const draft = await uniqueEntryDraft(currentBaseConfig, currentBasePath, title);
+    await writeFileText(draft.path, draft.markdown);
+    const rows = await loadMarkdownRows();
+    renderModel(buildTableModel(currentBaseConfig, rows), currentBaseName);
+  } catch (error) {
+    setStatus("Add failed");
+    console.error(error);
+  }
+}
+
+async function uniqueEntryDraft(baseConfig, basePath, title) {
+  const draft = buildNewEntryDraft(baseConfig, basePath, title);
+  if (!await fileExists(draft.path)) {
+    return draft;
+  }
+
+  const stem = draft.path.toLowerCase().endsWith(".md") ? draft.path.slice(0, -3) : draft.path;
+  for (let index = 2; index < 1000; index++) {
+    const path = stem + " (" + index + ").md";
+    if (!await fileExists(path)) {
+      return { ...draft, path };
+    }
+  }
+  throw new Error("Could not find an available entry name.");
+}
+
+async function openLinkedPage(event) {
+  const link = event.target.closest?.(".page-link");
+  if (!link) {
+    return;
+  }
+  event.preventDefault();
+  try {
+    await syscall("editor.navigate", { path: link.dataset.pagePath });
+  } catch (error) {
+    setStatus("Open failed");
+    console.error(error);
+  }
 }
 
 function beginColumnResize(event) {
@@ -298,6 +363,7 @@ async function openBase(event) {
     const baseConfig = parseYaml(yamlText);
     currentBaseConfig = baseConfig;
     currentBaseName = meta.name ?? "Base";
+    currentBasePath = meta.name ?? meta.path ?? "";
     const rows = await loadMarkdownRows();
     renderModel(buildTableModel(baseConfig, rows), currentBaseName);
   } catch (error) {
